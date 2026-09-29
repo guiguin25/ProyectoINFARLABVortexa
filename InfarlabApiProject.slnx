@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="InfarlabApiProject/InfarlabApiProject.csproj" />
+  <Project Path="InfarlabSis.Application/InfarlabSis.Application.csproj" />
+  <Project Path="InfarlabSis.Domain/InfarlabSis.Domain.csproj" />
+  <Project Path="InfarlabSis.Infrastructure/InfarlabSis.Infrastructure.csproj" />
+</Solution>

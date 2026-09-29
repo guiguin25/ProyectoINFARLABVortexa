@@ -1,0 +1,6 @@
+@InfarlabApiProject_HostAddress = http://localhost:5147
+
+GET {{InfarlabApiProject_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
