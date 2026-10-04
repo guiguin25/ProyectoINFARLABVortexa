@@ -65,16 +65,22 @@ namespace InfarlabSis.Infrastructure.Services
         private string GenerarJwtToken(Usuario usuario)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]!));
+
+            // 1. Obtener la clave y aplicarle SHA256 (IGUAL QUE EN PROGRAM.CS)
+            var secretKeyBytes = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
+            var keyBytes = System.Security.Cryptography.SHA256.HashData(secretKeyBytes);
+
+            // 2. Usar la clave hasheada (keyBytes) para garantizar los 256 bits
+            var key = new SymmetricSecurityKey(keyBytes);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-            new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
-            new Claim(ClaimTypes.Name, usuario.NombreUsuario),
-            new Claim(ClaimTypes.Email, usuario.Email),
-            new Claim(ClaimTypes.Role, usuario.Rol.Nombre)
-        };
+        new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
+        new Claim(ClaimTypes.Name, usuario.NombreUsuario),
+        new Claim(ClaimTypes.Email, usuario.Email),
+        new Claim(ClaimTypes.Role, usuario.Rol.Nombre)
+    };
 
             var token = new JwtSecurityToken(
                 issuer: jwtSettings["Issuer"],
