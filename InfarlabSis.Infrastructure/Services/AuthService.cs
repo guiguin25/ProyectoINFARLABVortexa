@@ -26,21 +26,17 @@ namespace InfarlabSis.Infrastructure.Services
 
         public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto request)
         {
-            // 1. Buscar usuario por Email o NombreUsuario
             var usuario = await _context.Usuarios
                 .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.Email == request.EmailOrUsername || u.NombreUsuario == request.EmailOrUsername);
 
             if (usuario == null || !usuario.Estado) return null;
 
-            // 2. Verificar contraseña cifrada con BCrypt
             bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Contrasena, usuario.Contrasena);
             if (!isValidPassword) return null;
 
-            // 3. Generar JWT Token
             var token = GenerarJwtToken(usuario);
 
-            // 4. Generar RefreshToken
             var refreshToken = new RefreshToken
             {
                 IdUsuario = usuario.IdUsuario,
@@ -66,11 +62,9 @@ namespace InfarlabSis.Infrastructure.Services
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
 
-            // 1. Obtener la clave y aplicarle SHA256 (IGUAL QUE EN PROGRAM.CS)
             var secretKeyBytes = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
             var keyBytes = System.Security.Cryptography.SHA256.HashData(secretKeyBytes);
 
-            // 2. Usar la clave hasheada (keyBytes) para garantizar los 256 bits
             var key = new SymmetricSecurityKey(keyBytes);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
