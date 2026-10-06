@@ -1,6 +1,8 @@
 using InfarlabSis.Application.Interfaces;
+using InfarlabSis.Application.Mappings;
 using InfarlabSis.Infrastructure.Persistence;
 using InfarlabSis.Infrastructure.Services;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -68,7 +70,7 @@ namespace InfarlabApiProject
                     }
                 });
             });
-
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddOpenApi();
 
             var app = builder.Build();

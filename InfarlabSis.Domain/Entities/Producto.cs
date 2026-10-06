@@ -1,0 +1,23 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace InfarlabSis.Domain.Entities
+{
+    public class Producto
+    {
+        public int IdProducto { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
+        public decimal PrecioVenta { get; set; }
+        public int StockActual { get; set; }
+        public int IdCategoria { get; set; }
+        public int? IdProveedor { get; set; }
+        public bool Estado { get; set; } = true;
+
+        // Propiedades de navegación
+        public virtual Categoria? Categoria { get; set; }
+        public virtual Proveedor? Proveedor { get; set; }
+        public virtual ICollection<Lote> Lotes { get; set; } = new List<Lote>();
+    }
+}

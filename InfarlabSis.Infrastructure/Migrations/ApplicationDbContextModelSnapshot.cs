@@ -22,6 +22,146 @@ namespace InfarlabSis.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Almacen", b =>
+                {
+                    b.Property<int>("IdAlmacen")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdAlmacen"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TipoArea")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("IdAlmacen");
+
+                    b.ToTable("Almacenes");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.AreaCalidad", b =>
+                {
+                    b.Property<int>("IdArea")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdArea"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("FechaEvaluacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaResultado")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdAlmacenDestino")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdLote")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdArea");
+
+                    b.HasIndex("IdAlmacenDestino");
+
+                    b.HasIndex("IdLote");
+
+                    b.ToTable("AreasCalidad");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Categoria", b =>
+                {
+                    b.Property<int>("IdCategoria")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdCategoria"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("IdCategoria");
+
+                    b.ToTable("Categorias");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Cliente", b =>
+                {
+                    b.Property<int>("IdCliente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdCliente"));
+
+                    b.Property<int>("IdPersona")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdCliente");
+
+                    b.HasIndex("IdPersona");
+
+                    b.ToTable("Clientes");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Lote", b =>
+                {
+                    b.Property<int>("IdLote")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdLote"));
+
+                    b.Property<DateTime>("FechaElaboracion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaVencimiento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdProveedor")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("IdLote");
+
+                    b.HasIndex("IdProducto");
+
+                    b.HasIndex("IdProveedor");
+
+                    b.ToTable("Lotes");
+                });
+
             modelBuilder.Entity("InfarlabSis.Domain.Entities.Persona", b =>
                 {
                     b.Property<int>("IdPersona")
@@ -67,6 +207,71 @@ namespace InfarlabSis.Infrastructure.Migrations
                     b.HasKey("IdPersona");
 
                     b.ToTable("Personas");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Producto", b =>
+                {
+                    b.Property<int>("IdProducto")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdProducto"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("IdCategoria")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdProveedor")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<decimal>("PrecioVenta")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("StockActual")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdProducto");
+
+                    b.HasIndex("IdCategoria");
+
+                    b.HasIndex("IdProveedor");
+
+                    b.ToTable("Productos");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Proveedor", b =>
+                {
+                    b.Property<int>("IdProveedor")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdProveedor"));
+
+                    b.Property<int?>("IdPersona")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("IdProveedor");
+
+                    b.HasIndex("IdPersona");
+
+                    b.ToTable("Proveedores");
                 });
 
             modelBuilder.Entity("InfarlabSis.Domain.Entities.RefreshToken", b =>
@@ -171,6 +376,82 @@ namespace InfarlabSis.Infrastructure.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.AreaCalidad", b =>
+                {
+                    b.HasOne("InfarlabSis.Domain.Entities.Almacen", "AlmacenDestino")
+                        .WithMany()
+                        .HasForeignKey("IdAlmacenDestino")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InfarlabSis.Domain.Entities.Lote", "Lote")
+                        .WithMany("EvaluacionesCalidad")
+                        .HasForeignKey("IdLote")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AlmacenDestino");
+
+                    b.Navigation("Lote");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Cliente", b =>
+                {
+                    b.HasOne("InfarlabSis.Domain.Entities.Persona", "Persona")
+                        .WithMany()
+                        .HasForeignKey("IdPersona")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Persona");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Lote", b =>
+                {
+                    b.HasOne("InfarlabSis.Domain.Entities.Producto", "Producto")
+                        .WithMany("Lotes")
+                        .HasForeignKey("IdProducto")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InfarlabSis.Domain.Entities.Proveedor", "Proveedor")
+                        .WithMany("Lotes")
+                        .HasForeignKey("IdProveedor")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Producto", b =>
+                {
+                    b.HasOne("InfarlabSis.Domain.Entities.Categoria", "Categoria")
+                        .WithMany("Productos")
+                        .HasForeignKey("IdCategoria")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InfarlabSis.Domain.Entities.Proveedor", "Proveedor")
+                        .WithMany("Productos")
+                        .HasForeignKey("IdProveedor")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Categoria");
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Proveedor", b =>
+                {
+                    b.HasOne("InfarlabSis.Domain.Entities.Persona", "Persona")
+                        .WithMany()
+                        .HasForeignKey("IdPersona")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Persona");
+                });
+
             modelBuilder.Entity("InfarlabSis.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("InfarlabSis.Domain.Entities.Usuario", "Usuario")
@@ -201,9 +482,31 @@ namespace InfarlabSis.Infrastructure.Migrations
                     b.Navigation("Rol");
                 });
 
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Categoria", b =>
+                {
+                    b.Navigation("Productos");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Lote", b =>
+                {
+                    b.Navigation("EvaluacionesCalidad");
+                });
+
             modelBuilder.Entity("InfarlabSis.Domain.Entities.Persona", b =>
                 {
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Producto", b =>
+                {
+                    b.Navigation("Lotes");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.Proveedor", b =>
+                {
+                    b.Navigation("Lotes");
+
+                    b.Navigation("Productos");
                 });
 
             modelBuilder.Entity("InfarlabSis.Domain.Entities.Rol", b =>
