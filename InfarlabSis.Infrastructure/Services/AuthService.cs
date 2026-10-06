@@ -2,14 +2,12 @@
 using InfarlabSis.Application.Interfaces;
 using InfarlabSis.Domain.Entities;
 using InfarlabSis.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 
 namespace InfarlabSis.Infrastructure.Services
 {
@@ -26,65 +24,64 @@ namespace InfarlabSis.Infrastructure.Services
 
         public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto request)
         {
+            // 1. Buscar usuario por Email o NombreUsuario
             var usuario = await _context.Usuarios
                 .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.Email == request.EmailOrUsername || u.NombreUsuario == request.EmailOrUsername);
 
-            if (usuario == null || !usuario.Estado) return null;
+            if (usuario == null || !usuario.Estado)
+                return null;
 
-            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Contrasena, usuario.Contrasena);
-            if (!isValidPassword) return null;
-
-            var token = GenerarJwtToken(usuario);
-
-            var refreshToken = new RefreshToken
+            // 2. Verificar contraseña (admite texto plano en desarrollo y Hash BCrypt)
+            bool esValida = false;
+            if (usuario.Contrasena == request.Contrasena)
             {
-                IdUsuario = usuario.IdUsuario,
-                Token = Guid.NewGuid().ToString("N"),
-                FechaExpiracion = DateTime.UtcNow.AddDays(7),
-                EsRevocado = false
-            };
+                esValida = true;
+            }
+            else if (!string.IsNullOrEmpty(usuario.Contrasena) && usuario.Contrasena.StartsWith("$2"))
+            {
+                esValida = BCrypt.Net.BCrypt.Verify(request.Contrasena, usuario.Contrasena);
+            }
 
-            _context.RefreshTokens.Add(refreshToken);
-            await _context.SaveChangesAsync();
+            if (!esValida)
+                return null;
+
+            // 3. Generar Token JWT
+            var token = GenerarJwtToken(usuario);
 
             return new LoginResponseDto
             {
                 Token = token,
-                RefreshToken = refreshToken.Token,
                 NombreUsuario = usuario.NombreUsuario,
-                Email = usuario.Email,
-                Rol = usuario.Rol.Nombre
+                Rol = usuario.Rol != null ? usuario.Rol.Nombre : "Sin Rol"
             };
         }
 
         private string GenerarJwtToken(Usuario usuario)
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-
-            var secretKeyBytes = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
-            var keyBytes = System.Security.Cryptography.SHA256.HashData(secretKeyBytes);
-
-            var key = new SymmetricSecurityKey(keyBytes);
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var secretKey = _configuration["JwtSettings:Secret"] ?? "ClaveSecretaSuperSeguraParaInfarlabSis2026SystemJwtToken!";
+            var key = Encoding.UTF8.GetBytes(secretKey);
 
             var claims = new[]
             {
-        new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
-        new Claim(ClaimTypes.Name, usuario.NombreUsuario),
-        new Claim(ClaimTypes.Email, usuario.Email),
-        new Claim(ClaimTypes.Role, usuario.Rol.Nombre)
-    };
+                new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
+                new Claim(ClaimTypes.Name, usuario.NombreUsuario),
+                new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty),
+                new Claim(ClaimTypes.Role, usuario.Rol != null ? usuario.Rol.Nombre : "Sin Rol")
+            };
 
-            var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["DurationInMinutes"]!)),
-                signingCredentials: creds
-            );
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(8),
+                Issuer = _configuration["JwtSettings:Issuer"],
+                Audience = _configuration["JwtSettings:Audience"],
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }

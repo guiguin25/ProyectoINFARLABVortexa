@@ -2,12 +2,10 @@ using InfarlabSis.Application.Interfaces;
 using InfarlabSis.Application.Mappings;
 using InfarlabSis.Infrastructure.Persistence;
 using InfarlabSis.Infrastructure.Services;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace InfarlabApiProject
@@ -18,14 +16,17 @@ namespace InfarlabApiProject
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Base de datos SQL Server
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            // Servicios de la aplicación
             builder.Services.AddScoped<IAuthService, AuthService>();
 
+            // Configuración JWT
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-            var secretKeyBytes = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
-            var keyBytes = SHA256.HashData(secretKeyBytes);
+            var secretKey = jwtSettings["Secret"]!;
+            var keyBytes = Encoding.UTF8.GetBytes(secretKey);
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -45,6 +46,7 @@ namespace InfarlabApiProject
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
+            // Configuración de Swagger para Swashbuckle 10.x / OpenAPI v2.0+
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -53,31 +55,37 @@ namespace InfarlabApiProject
                     Version = "v1"
                 });
 
+                // Esquema de seguridad tipo HTTP Bearer
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "JWT Authorization header usando Bearer. Escribe 'Bearer' [espacio] y tu token",
+                    Description = "Autenticación JWT. Pega únicamente tu token JWT aquí (sin la palabra Bearer).",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT"
                 });
 
+                // Se vincula 'doc' en OpenApiSecuritySchemeReference para que genere bien la referencia JSON
                 c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
                 {
                     {
-                        new OpenApiSecuritySchemeReference("Bearer"),
+                        new OpenApiSecuritySchemeReference("Bearer", doc),
                         new List<string>()
                     }
                 });
             });
-            builder.Services.AddAutoMapper(typeof(MappingProfile));
-            builder.Services.AddOpenApi();
+
+            // Registro de AutoMapper
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<MappingProfile>();
+            });
 
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
