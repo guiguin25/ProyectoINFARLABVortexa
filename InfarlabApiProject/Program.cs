@@ -1,6 +1,7 @@
 using InfarlabSis.Application.Interfaces;
 using InfarlabSis.Application.Mappings;
 using InfarlabSis.Infrastructure.Persistence;
+using InfarlabSis.Infrastructure.Seeders;
 using InfarlabSis.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +13,15 @@ namespace InfarlabApiProject
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Base de datos SQL Server
+            
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Servicios de la aplicación
+            
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             // Configuración JWT
@@ -66,7 +67,7 @@ namespace InfarlabApiProject
                     BearerFormat = "JWT"
                 });
 
-                // Se vincula 'doc' en OpenApiSecuritySchemeReference para que genere bien la referencia JSON
+                
                 c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
                 {
                     {
@@ -84,6 +85,30 @@ namespace InfarlabApiProject
 
             var app = builder.Build();
 
+            //SEEDERS -- FAKERS
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                Console.WriteLine($" Base de datos: {context.Database.GetConnectionString()}");
+
+                try
+                {
+                    await DbSeed.SeedAsync(context);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"📝 Mensaje: {ex.Message}");
+                    Console.WriteLine($"🔍 InnerException: {ex.InnerException?.Message}");
+                    Console.WriteLine($" StackTrace: {ex.StackTrace}");
+                }
+            }
+
+
+            // ==========================================
+            // Configuración del Pipeline HTTP
+            // ==========================================
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

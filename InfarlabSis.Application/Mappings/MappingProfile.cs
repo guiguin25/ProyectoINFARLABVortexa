@@ -1,13 +1,16 @@
-﻿using InfarlabSis.Application.DTOs.Actores;
+﻿using AutoMapper;
+using InfarlabSis.Application.DTOs.Actores;
+using InfarlabSis.Application.DTOs.Compras;
+using InfarlabSis.Application.DTOs.Devoluciones;
 using InfarlabSis.Application.DTOs.Persona;
 using InfarlabSis.Application.DTOs.Productos;
 using InfarlabSis.Application.DTOs.Usuarios;
+using InfarlabSis.Application.DTOs.Ventas;
 using InfarlabSis.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using AutoMapper;
 namespace InfarlabSis.Application.Mappings
 {
     public class MappingProfile : Profile
@@ -42,6 +45,24 @@ namespace InfarlabSis.Application.Mappings
                 .ForMember(dest => dest.NombreRol, opt => opt.MapFrom(src => src.Rol != null ? src.Rol.Nombre : string.Empty));
 
             CreateMap<CrearUsuarioDto, Usuario>();
+
+            //Ventas
+            CreateMap<Venta, VentaDto>();
+            CreateMap<VentaCreaDto, Venta>();
+
+            CreateMap<DetalleVenta, DetalleVentaDto>();
+            CreateMap<DetalleVentaCreaDto, DetalleVenta>();
+
+            //Devoluciones
+            CreateMap<Devolucion, DevolucionDto>();
+            CreateMap<DevolucionCreaDto, Devolucion>();
+
+            CreateMap<DetalleDevolucion, DetalleDevolucionDto>();
+            CreateMap<DetalleDevolucionCreaDto, DetalleDevolucion>();
+
+            //CompraProveedor
+            CreateMap<CompraProveedor, CompraProveedorDto>();
+            CreateMap<CompraProveedorCreaDto, CompraProveedor>();
         }
     }
 }

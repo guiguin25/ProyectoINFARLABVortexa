@@ -1,8 +1,4 @@
 ﻿using InfarlabSis.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Reflection.Emit;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfarlabSis.Infrastructure.Persistence
@@ -32,6 +28,19 @@ namespace InfarlabSis.Infrastructure.Persistence
         public DbSet<Lote> Lotes => Set<Lote>();
         public DbSet<AreaCalidad> AreasCalidad => Set<AreaCalidad>();
 
+        // ==========================================
+        // Módulo de Ventas y Devoluciones (NUEVO)
+        // ==========================================
+        public DbSet<Venta> Ventas => Set<Venta>();
+        public DbSet<DetalleVenta> DetalleVentas => Set<DetalleVenta>();
+        public DbSet<Devolucion> Devoluciones => Set<Devolucion>();
+        public DbSet<DetalleDevolucion> DetalleDevoluciones => Set<DetalleDevolucion>();
+
+        // ==========================================
+        // Módulo de Compras (NUEVO)
+        // ==========================================
+        public DbSet<CompraProveedor> CompraProveedores => Set<CompraProveedor>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -39,8 +48,6 @@ namespace InfarlabSis.Infrastructure.Persistence
             // ------------------------------------------
             // 1. Mapeo: Seguridad y Actores
             // ------------------------------------------
-
-            // Tabla Persona
             modelBuilder.Entity<Persona>(entity =>
             {
                 entity.HasKey(e => e.IdPersona);
@@ -51,7 +58,6 @@ namespace InfarlabSis.Infrastructure.Persistence
                 entity.Property(e => e.Email).HasMaxLength(100).IsRequired();
             });
 
-            // Tabla Rol
             modelBuilder.Entity<Rol>(entity =>
             {
                 entity.HasKey(e => e.IdRol);
@@ -59,7 +65,6 @@ namespace InfarlabSis.Infrastructure.Persistence
                 entity.Property(e => e.Descripcion).HasMaxLength(200);
             });
 
-            // Tabla Usuario
             modelBuilder.Entity<Usuario>(entity =>
             {
                 entity.HasKey(e => e.IdUsuario);
@@ -67,20 +72,17 @@ namespace InfarlabSis.Infrastructure.Persistence
                 entity.Property(e => e.Email).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Contrasena).HasMaxLength(255).IsRequired();
 
-                // Relación 1:1 con Persona
                 entity.HasOne(u => u.Persona)
                       .WithOne(p => p.Usuario)
                       .HasForeignKey<Usuario>(u => u.IdPersona)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Relación 1:N con Rol
                 entity.HasOne(u => u.Rol)
                       .WithMany(r => r.Usuarios)
                       .HasForeignKey(u => u.IdRol)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Tabla RefreshToken
             modelBuilder.Entity<RefreshToken>(entity =>
             {
                 entity.HasKey(e => e.IdRefreshToken);
@@ -92,7 +94,6 @@ namespace InfarlabSis.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Tabla Cliente
             modelBuilder.Entity<Cliente>(entity =>
             {
                 entity.HasKey(e => e.IdCliente);
@@ -103,7 +104,6 @@ namespace InfarlabSis.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Tabla Proveedor
             modelBuilder.Entity<Proveedor>(entity =>
             {
                 entity.HasKey(e => e.IdProveedor);
@@ -119,8 +119,6 @@ namespace InfarlabSis.Infrastructure.Persistence
             // ------------------------------------------
             // 2. Mapeo: Productos, Almacenes y Calidad
             // ------------------------------------------
-
-            // Tabla Categoria
             modelBuilder.Entity<Categoria>(entity =>
             {
                 entity.HasKey(e => e.IdCategoria);
@@ -128,7 +126,6 @@ namespace InfarlabSis.Infrastructure.Persistence
                 entity.Property(e => e.Descripcion).HasMaxLength(250);
             });
 
-            // Tabla Almacen
             modelBuilder.Entity<Almacen>(entity =>
             {
                 entity.HasKey(e => e.IdAlmacen);
@@ -137,7 +134,6 @@ namespace InfarlabSis.Infrastructure.Persistence
                 entity.Property(e => e.TipoArea).HasMaxLength(50).IsRequired();
             });
 
-            // Tabla Producto
             modelBuilder.Entity<Producto>(entity =>
             {
                 entity.HasKey(e => e.IdProducto);
@@ -157,7 +153,6 @@ namespace InfarlabSis.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Tabla Lote
             modelBuilder.Entity<Lote>(entity =>
             {
                 entity.HasKey(e => e.IdLote);
@@ -175,7 +170,6 @@ namespace InfarlabSis.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Tabla AreaCalidad (Control de Calidad)
             modelBuilder.Entity<AreaCalidad>(entity =>
             {
                 entity.HasKey(e => e.IdArea);
@@ -189,6 +183,88 @@ namespace InfarlabSis.Infrastructure.Persistence
                 entity.HasOne(ac => ac.AlmacenDestino)
                       .WithMany()
                       .HasForeignKey(ac => ac.IdAlmacenDestino)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------
+            // 3. Mapeo: Ventas y Devoluciones
+            // ------------------------------------------
+            modelBuilder.Entity<Venta>(entity =>
+            {
+                entity.HasKey(e => e.IdVenta);
+
+                entity.HasOne(v => v.Usuario)
+                      .WithMany()
+                      .HasForeignKey(v => v.IdUsuario)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(v => v.Cliente)
+                      .WithMany()
+                      .HasForeignKey(v => v.IdCliente)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DetalleVenta>(entity =>
+            {
+                entity.HasKey(e => e.IdDetalleVenta);
+
+                entity.HasOne(d => d.Venta)
+                      .WithMany(v => v.DetallesVenta)
+                      .HasForeignKey(d => d.IdVenta)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.Producto)
+                      .WithMany()
+                      .HasForeignKey(d => d.IdProducto)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Devolucion>(entity =>
+            {
+                entity.HasKey(e => e.IdDevolucion);
+
+                entity.HasOne(d => d.Venta)
+                      .WithMany(v => v.Devoluciones)
+                      .HasForeignKey(d => d.IdVenta)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(d => d.Cliente)
+                      .WithMany()
+                      .HasForeignKey(d => d.IdCliente)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DetalleDevolucion>(entity =>
+            {
+                entity.HasKey(e => e.IdDetalleDevolucion);
+
+                entity.HasOne(d => d.Devolucion)
+                      .WithMany(dev => dev.DetallesDevolucion)
+                      .HasForeignKey(d => d.IdDevolucion)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.Producto)
+                      .WithMany()
+                      .HasForeignKey(d => d.IdProducto)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------
+            // 4. Mapeo: Compras
+            // ------------------------------------------
+            modelBuilder.Entity<CompraProveedor>(entity =>
+            {
+                entity.HasKey(e => e.IdCompra);
+
+                entity.HasOne(c => c.Proveedor)
+                      .WithMany()
+                      .HasForeignKey(c => c.IdProveedor)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.Categoria)
+                      .WithMany()
+                      .HasForeignKey(c => c.IdCategoria)
                       .OnDelete(DeleteBehavior.Restrict);
             });
         }
