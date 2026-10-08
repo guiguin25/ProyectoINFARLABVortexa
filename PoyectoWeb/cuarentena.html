@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INFARLAB - Área de Calidad</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="dashboard.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+ 
+    <aside class="sidebar">
+<div class="sidebar-brand">
+<i class="fa-solid fa-flask-vial"></i>
+<span>INFARLAB</span>
+</div>
+<ul class="sidebar-menu">
+<li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+<li><a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Productos & Lotes</a></li>
+<li><a href="comercial.html"><i class="fa-solid fa-handshake"></i> Comercial & Clientes</a></li>
+<li class="active"><a href="cuarentena.html"><i class="fa-solid fa-triangle-exclamation"></i> Calidad / Cuarentena</a></li>
+<li><a href="usuarios.html"><i class="fa-solid fa-users-gear"></i> Usuarios y Roles</a></li>
+</ul>
+<div class="sidebar-footer">
+<a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
+</div>
+</aside>
+ 
+    <main class="main-content">
+<header class="topbar">
+<div class="topbar-title">
+<h2>Control de Calidad y Cuarentena</h2>
+<p>Revisión técnica de lotes bajo normas BPM</p>
+</div>
+</header>
+ 
+        <section class="recent-activity">
+<div class="section-header">
+<h3>Lotes Retenidos en Cuarentena</h3>
+</div>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>ID Lote</th>
+<th>Descripción de Análisis</th>
+<th>Fecha Ingreso</th>
+<th>Estado Actual</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody id="tabla-cuarentena-body">
+<!-- Consumo dinámico de API de Cuarentena -->
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<script src="cuarentena.js"></script>
+</body>
+</html>
+ 
