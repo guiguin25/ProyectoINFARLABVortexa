@@ -46,22 +46,42 @@ namespace InfarlabSis.Application.Mappings
 
             CreateMap<CrearUsuarioDto, Usuario>();
 
-            //Ventas
+            // Ventas
             CreateMap<Venta, VentaDto>();
+            CreateMap<VentaDto, Venta>()
+                .ForMember(dest => dest.IdVenta, opt => opt.Ignore())
+                .ForMember(dest => dest.IdUsuario, opt => opt.Ignore())
+                .ForMember(dest => dest.IdCliente, opt => opt.Ignore());
             CreateMap<VentaCreaDto, Venta>();
 
             CreateMap<DetalleVenta, DetalleVentaDto>();
+            CreateMap<DetalleVentaDto, DetalleVenta>()
+                .ForMember(dest => dest.IdDetalleVenta, opt => opt.Ignore())
+                .ForMember(dest => dest.IdVenta, opt => opt.Ignore())
+                .ForMember(dest => dest.Subtotal, opt => opt.Ignore());
             CreateMap<DetalleVentaCreaDto, DetalleVenta>();
 
-            //Devoluciones
+            // Devoluciones
             CreateMap<Devolucion, DevolucionDto>();
+            CreateMap<Devolucion, DevolucionConDetallesDto>();
+            CreateMap<DevolucionDto, Devolucion>()
+                .ForMember(dest => dest.IdDevolucion, opt => opt.Ignore())
+                .ForMember(dest => dest.IdVenta, opt => opt.Ignore());
             CreateMap<DevolucionCreaDto, Devolucion>();
 
             CreateMap<DetalleDevolucion, DetalleDevolucionDto>();
+            CreateMap<DetalleDevolucionDto, DetalleDevolucion>()
+                .ForMember(dest => dest.IdDetalleDevolucion, opt => opt.Ignore())
+                .ForMember(dest => dest.IdDevolucion, opt => opt.Ignore());
             CreateMap<DetalleDevolucionCreaDto, DetalleDevolucion>();
 
-            //CompraProveedor
+
+            // CompraProveedor
             CreateMap<CompraProveedor, CompraProveedorDto>();
+            CreateMap<CompraProveedorDto, CompraProveedor>()
+                .ForMember(dest => dest.IdCompra, opt => opt.Ignore())
+                .ForMember(dest => dest.IdProveedor, opt => opt.Ignore())
+                .ForMember(dest => dest.IdCategoria, opt => opt.Ignore());
             CreateMap<CompraProveedorCreaDto, CompraProveedor>();
         }
     }

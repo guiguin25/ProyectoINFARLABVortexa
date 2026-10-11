@@ -17,14 +17,12 @@ namespace InfarlabApiProject
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            
             builder.Services.AddScoped<IAuthService, AuthService>();
 
-            // Configuración JWT
+            // JWT
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["Secret"]!;
             var keyBytes = Encoding.UTF8.GetBytes(secretKey);
@@ -44,19 +42,14 @@ namespace InfarlabApiProject
                 };
             });
 
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
-            // Configuración de Swagger para Swashbuckle 10.x / OpenAPI v2.0+
+            
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Infarlab API",
-                    Version = "v1"
-                });
-
-                // Esquema de seguridad tipo HTTP Bearer
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Infarlab API", Version = "v1" });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "Autenticación JWT. Pega únicamente tu token JWT aquí (sin la palabra Bearer).",
@@ -66,49 +59,31 @@ namespace InfarlabApiProject
                     Scheme = "bearer",
                     BearerFormat = "JWT"
                 });
-
-                
                 c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
                 {
-                    {
-                        new OpenApiSecuritySchemeReference("Bearer", doc),
-                        new List<string>()
-                    }
+                    { new OpenApiSecuritySchemeReference("Bearer", doc), new List<string>() }
                 });
             });
 
-            // Registro de AutoMapper
-            builder.Services.AddAutoMapper(cfg =>
-            {
-                cfg.AddProfile<MappingProfile>();
-            });
+            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
             var app = builder.Build();
 
-            //SEEDERS -- FAKERS
-
+            // Seeder
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                Console.WriteLine($" Base de datos: {context.Database.GetConnectionString()}");
-
                 try
                 {
                     await DbSeed.SeedAsync(context);
+                    Console.WriteLine("Seeder ejecutado correctamente.");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"📝 Mensaje: {ex.Message}");
-                    Console.WriteLine($"🔍 InnerException: {ex.InnerException?.Message}");
-                    Console.WriteLine($" StackTrace: {ex.StackTrace}");
+                    Console.WriteLine($"Error en seeder: {ex.Message}");
                 }
             }
 
-
-            // ==========================================
-            // Configuración del Pipeline HTTP
-            // ==========================================
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -116,6 +91,7 @@ namespace InfarlabApiProject
             }
 
             app.UseHttpsRedirection();
+
             app.UseAuthentication();
             app.UseAuthorization();
 
