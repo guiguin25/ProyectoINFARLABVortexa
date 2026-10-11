@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INFARLAB - Acceso al Sistema</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="auth-body">
+ 
+    <div class="auth-container">
+<!-- VISTA 1: FORMULARIO DE LOGIN -->
+<div id="login-card" class="auth-card">
+<div class="auth-header">
+<i class="fa-solid fa-flask-vial"></i>
+<h1>INFARLAB</h1>
+<p>Sistema de Gestión Farmacéutica y Logística</p>
+</div>
+ 
+            <form id="form-login">
+<div class="input-group">
+<i class="fa-solid fa-user"></i>
+<input type="text" id="username" placeholder="Nombre de usuario" required>
+</div>
+ 
+                <div class="input-group">
+<i class="fa-solid fa-lock"></i>
+<input type="password" id="password" placeholder="Contraseña" required>
+</div>
+ 
+                <div class="auth-actions">
+<label><input type="checkbox" id="remember-me"> Recordarme</label>
+<a href="#" id="link-forgot" class="forgot-link">¿Olvidaste tu contraseña?</a>
+</div>
+ 
+                <button type="submit" class="btn-primary">Iniciar Sesión</button>
+</form>
+</div>
+ 
+        <!-- VISTA 2: CONTINGENCIA (RECUPERACIÓN DE CONTRASEÑA POR CORREO) -->
+<div id="forgot-card" class="auth-card hidden">
+<div class="auth-header">
+<i class="fa-solid fa-key"></i>
+<h1>Recuperación</h1>
+<p>Ingrese su correo electrónico registrado en el sistema</p>
+</div>
+ 
+            <div id="forgot-alert" class="alert-message hidden"></div>
+ 
+            <form id="form-forgot">
+<div class="input-group">
+<i class="fa-solid fa-envelope"></i>
+<input type="email" id="recovery-email" placeholder="correo@infarlab.bo" required>
+</div>
+ 
+                <button type="submit" class="btn-primary">Enviar enlace de recuperación</button>
+<button type="button" id="btn-back-login" class="btn-secondary">Volver al Login</button>
+</form>
+</div>
+</div>
+ 
+    <script src="auth.js"></script>
+</body>
+</html>
+ 
