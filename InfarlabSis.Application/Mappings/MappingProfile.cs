@@ -22,14 +22,19 @@ namespace InfarlabSis.Application.Mappings
 
             // Actores
             CreateMap<Cliente, ClienteDto>()
-                .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(src => src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat}" : string.Empty))
-                .ForMember(dest => dest.CI, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.CI : string.Empty))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.Email : string.Empty))
-                .ReverseMap();
+                .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(src =>
+                    src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat} {src.Persona.ApMat}".Trim() : string.Empty))
+                .ForMember(dest => dest.Ci, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.CI : null))
+                .ForMember(dest => dest.Telefono, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.Telefono : null));
 
             CreateMap<Proveedor, ProveedorDto>()
-                .ForMember(dest => dest.NombrePersonaContacto, opt => opt.MapFrom(src => src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat}" : null))
-                .ReverseMap();
+                .ForMember(dest => dest.NombrePersonaContacto, opt => opt.MapFrom(src =>
+                    src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat} {src.Persona.ApMat}".Trim() : null))
+                .ForMember(dest => dest.CiPersonaContacto, opt => opt.MapFrom(src =>
+                    src.Persona != null ? src.Persona.CI : null))
+                .ForMember(dest => dest.TelefonoPersonaContacto, opt => opt.MapFrom(src =>
+                    src.Persona != null ? src.Persona.Telefono : null));
+
 
             // Productos y Almacenes
             CreateMap<Categoria, CategoriaDto>().ReverseMap();

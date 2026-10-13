@@ -51,43 +51,71 @@ namespace InfarlabApiProject.Controllers
             return Ok(clienteDto);
         }
 
-        // POST: api/Clientes
+        // POST: api/Clientes (Crea Persona + vincula IdPersona en Cliente)
         [HttpPost]
-        public async Task<IActionResult> CrearCliente([FromBody] ClienteDto dto)
+        public async Task<IActionResult> CrearCliente([FromBody] CrearClienteDto dto)
         {
-            // Validar que la persona asociada exista en la base de datos
-            var personaExiste = await _context.Personas.AnyAsync(p => p.IdPersona == dto.IdPersona);
-            if (!personaExiste)
-                return BadRequest(new { mensaje = "La persona especificada no existe." });
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Crear y guardar Persona
+                var persona = new Persona
+                {
+                    Nombre = dto.Nombre,
+                    ApPat = dto.ApPat,
+                    ApMat = dto.ApMat,
+                    CI = dto.Ci,
+                    Telefono = dto.Telefono,
+                    Estado = true
+                };
 
-            var nuevoCliente = _mapper.Map<Cliente>(dto);
+                _context.Personas.Add(persona);
+                await _context.SaveChangesAsync(); // SQL Server genera IdPersona
 
-            _context.Clientes.Add(nuevoCliente);
-            await _context.SaveChangesAsync();
+                // 2. Crear Cliente enlazado únicamente a la Persona
+                var cliente = new Cliente
+                {
+                    IdPersona = persona.IdPersona
+                };
 
-            var resultadoDto = _mapper.Map<ClienteDto>(nuevoCliente);
+                _context.Clientes.Add(cliente);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCliente), new { id = nuevoCliente.IdCliente }, resultadoDto);
+                await transaction.CommitAsync();
+
+                // Cargar datos de Persona para mapear la respuesta
+                await _context.Entry(cliente).Reference(c => c.Persona).LoadAsync();
+
+                var resultadoDto = _mapper.Map<ClienteDto>(cliente);
+
+                return CreatedAtAction(nameof(GetCliente), new { id = cliente.IdCliente }, resultadoDto);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { mensaje = "Error al registrar el cliente.", detalle = ex.Message });
+            }
         }
 
-        // PUT: api/Clientes/5
+        // PUT: api/Clientes/5 (Actualiza datos personales)
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> ActualizarCliente(int id, [FromBody] ClienteDto dto)
+        public async Task<IActionResult> ActualizarCliente(int id, [FromBody] ActualizarClienteDto dto)
         {
-            var clienteExistente = await _context.Clientes.FindAsync(id);
+            var clienteExistente = await _context.Clientes
+                .Include(c => c.Persona)
+                .FirstOrDefaultAsync(c => c.IdCliente == id);
 
             if (clienteExistente == null)
                 return NotFound(new { mensaje = "Cliente no encontrado." });
 
-            // Validar si la nueva Persona existe
-            if (clienteExistente.IdPersona != dto.IdPersona)
+            if (clienteExistente.Persona != null)
             {
-                var personaExiste = await _context.Personas.AnyAsync(p => p.IdPersona == dto.IdPersona);
-                if (!personaExiste)
-                    return BadRequest(new { mensaje = "La persona especificada no existe." });
+                clienteExistente.Persona.Nombre = dto.Nombre;
+                clienteExistente.Persona.ApPat = dto.ApPat;
+                clienteExistente.Persona.ApMat = dto.ApMat;
+                clienteExistente.Persona.CI = dto.Ci;
+                clienteExistente.Persona.Telefono = dto.Telefono;
             }
-
-            _mapper.Map(dto, clienteExistente);
 
             await _context.SaveChangesAsync();
 

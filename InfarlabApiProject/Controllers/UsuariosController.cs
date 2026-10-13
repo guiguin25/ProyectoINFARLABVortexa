@@ -54,44 +54,70 @@ namespace InfarlabApiProject.Controllers
             return Ok(usuarioDto);
         }
 
-        // POST: api/Usuarios (Crear nuevo usuario)
+        // POST: api/Usuarios (Crear nuevo usuario + persona)
         [HttpPost]
         public async Task<IActionResult> CrearUsuario([FromBody] CrearUsuarioDto dto)
         {
-            // 1. Validar que la Persona exista
-            var personaExiste = await _context.Personas.AnyAsync(p => p.IdPersona == dto.IdPersona);
-            if (!personaExiste)
-                return BadRequest(new { mensaje = "La persona especificada no existe." });
-
-            // 2. Validar que el Rol exista
+            // 1. Validar que el Rol exista
             var rolExiste = await _context.Roles.AnyAsync(r => r.IdRol == dto.IdRol);
             if (!rolExiste)
                 return BadRequest(new { mensaje = "El rol especificado no existe." });
 
-            // 3. Validar duplicados de Email o NombreUsuario
+            // 2. Validar duplicados de Email o NombreUsuario
             var existeDuplicado = await _context.Usuarios
                 .AnyAsync(u => u.Email == dto.Email || u.NombreUsuario == dto.NombreUsuario);
             if (existeDuplicado)
                 return BadRequest(new { mensaje = "El nombre de usuario o correo ya se encuentra registrado." });
 
-            // 4. Mapear DTO a Entidad
-            var nuevoUsuario = _mapper.Map<Usuario>(dto);
+            // 3. Transacción para asegurar la consistencia entre Persona y Usuario
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // A. Crear y guardar los datos personales
+                var nuevaPersona = new Persona
+                {
+                    Nombre = dto.Nombre,
+                    ApPat = dto.ApPat,
+                    ApMat = dto.ApMat,
+                    CI = dto.Ci,
+                    Telefono = dto.Telefono,
+                    Estado = true
+                };
 
-            // 5. Hash de la contraseña con BCrypt
-            nuevoUsuario.Contrasena = BCrypt.Net.BCrypt.HashPassword(dto.Contrasena);
-            nuevoUsuario.Estado = true;
-            nuevoUsuario.FechaCreacion = DateTime.UtcNow;
+                _context.Personas.Add(nuevaPersona);
+                await _context.SaveChangesAsync(); // SQL Server asigna el IdPersona autoincrementable
 
-            _context.Usuarios.Add(nuevoUsuario);
-            await _context.SaveChangesAsync();
+                // B. Crear y guardar el Usuario vinculado a la Persona
+                var nuevoUsuario = new Usuario
+                {
+                    IdPersona = nuevaPersona.IdPersona,
+                    NombreUsuario = dto.NombreUsuario,
+                    Email = dto.Email,
+                    Contrasena = BCrypt.Net.BCrypt.HashPassword(dto.Contrasena),
+                    IdRol = dto.IdRol,
+                    Estado = true,
+                    FechaCreacion = DateTime.UtcNow
+                };
 
-            // Cargar relaciones para retornar el DTO de respuesta completo
-            await _context.Entry(nuevoUsuario).Reference(u => u.Persona).LoadAsync();
-            await _context.Entry(nuevoUsuario).Reference(u => u.Rol).LoadAsync();
+                _context.Usuarios.Add(nuevoUsuario);
+                await _context.SaveChangesAsync();
 
-            var resultadoDto = _mapper.Map<UsuarioDto>(nuevoUsuario);
+                // C. Confirmar la transacción
+                await transaction.CommitAsync();
 
-            return CreatedAtAction(nameof(GetUsuario), new { id = nuevoUsuario.IdUsuario }, resultadoDto);
+                // Cargar datos de navegación para que AutoMapper arme el UsuarioDto completo
+                await _context.Entry(nuevoUsuario).Reference(u => u.Persona).LoadAsync();
+                await _context.Entry(nuevoUsuario).Reference(u => u.Rol).LoadAsync();
+
+                var resultadoDto = _mapper.Map<UsuarioDto>(nuevoUsuario);
+
+                return CreatedAtAction(nameof(GetUsuario), new { id = nuevoUsuario.IdUsuario }, resultadoDto);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { mensaje = "Error al registrar el usuario.", detalle = ex.Message });
+            }
         }
 
         // PUT: api/Usuarios/5 (Actualizar datos de usuario / Rol / Contraseña)
