@@ -22,14 +22,19 @@ namespace InfarlabSis.Application.Mappings
 
             // Actores
             CreateMap<Cliente, ClienteDto>()
-                .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(src => src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat}" : string.Empty))
-                .ForMember(dest => dest.CI, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.CI : string.Empty))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.Email : string.Empty))
-                .ReverseMap();
+                .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(src =>
+                    src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat} {src.Persona.ApMat}".Trim() : string.Empty))
+                .ForMember(dest => dest.Ci, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.CI : null))
+                .ForMember(dest => dest.Telefono, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.Telefono : null));
 
             CreateMap<Proveedor, ProveedorDto>()
-                .ForMember(dest => dest.NombrePersonaContacto, opt => opt.MapFrom(src => src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat}" : null))
-                .ReverseMap();
+                .ForMember(dest => dest.NombrePersonaContacto, opt => opt.MapFrom(src =>
+                    src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat} {src.Persona.ApMat}".Trim() : null))
+                .ForMember(dest => dest.CiPersonaContacto, opt => opt.MapFrom(src =>
+                    src.Persona != null ? src.Persona.CI : null))
+                .ForMember(dest => dest.TelefonoPersonaContacto, opt => opt.MapFrom(src =>
+                    src.Persona != null ? src.Persona.Telefono : null));
+
 
             // Productos y Almacenes
             CreateMap<Categoria, CategoriaDto>().ReverseMap();
@@ -46,22 +51,47 @@ namespace InfarlabSis.Application.Mappings
 
             CreateMap<CrearUsuarioDto, Usuario>();
 
-            //Ventas
+            CreateMap<UsuarioCreaDto, Usuario>()
+            .ForMember(dest => dest.IdUsuario, opt => opt.Ignore())
+            .ForMember(dest => dest.Persona, opt => opt.Ignore())
+            .ForMember(dest => dest.FechaCreacion, opt => opt.Ignore());
+
+            // Ventas
             CreateMap<Venta, VentaDto>();
+            CreateMap<VentaDto, Venta>()
+                .ForMember(dest => dest.IdVenta, opt => opt.Ignore())
+                .ForMember(dest => dest.IdUsuario, opt => opt.Ignore())
+                .ForMember(dest => dest.IdCliente, opt => opt.Ignore());
             CreateMap<VentaCreaDto, Venta>();
 
             CreateMap<DetalleVenta, DetalleVentaDto>();
+            CreateMap<DetalleVentaDto, DetalleVenta>()
+                .ForMember(dest => dest.IdDetalleVenta, opt => opt.Ignore())
+                .ForMember(dest => dest.IdVenta, opt => opt.Ignore())
+                .ForMember(dest => dest.Subtotal, opt => opt.Ignore());
             CreateMap<DetalleVentaCreaDto, DetalleVenta>();
 
-            //Devoluciones
+            // Devoluciones
             CreateMap<Devolucion, DevolucionDto>();
+            CreateMap<Devolucion, DevolucionConDetallesDto>();
+            CreateMap<DevolucionDto, Devolucion>()
+                .ForMember(dest => dest.IdDevolucion, opt => opt.Ignore())
+                .ForMember(dest => dest.IdVenta, opt => opt.Ignore());
             CreateMap<DevolucionCreaDto, Devolucion>();
 
             CreateMap<DetalleDevolucion, DetalleDevolucionDto>();
+            CreateMap<DetalleDevolucionDto, DetalleDevolucion>()
+                .ForMember(dest => dest.IdDetalleDevolucion, opt => opt.Ignore())
+                .ForMember(dest => dest.IdDevolucion, opt => opt.Ignore());
             CreateMap<DetalleDevolucionCreaDto, DetalleDevolucion>();
 
-            //CompraProveedor
+
+            // CompraProveedor
             CreateMap<CompraProveedor, CompraProveedorDto>();
+            CreateMap<CompraProveedorDto, CompraProveedor>()
+                .ForMember(dest => dest.IdCompra, opt => opt.Ignore())
+                .ForMember(dest => dest.IdProveedor, opt => opt.Ignore())
+                .ForMember(dest => dest.IdCategoria, opt => opt.Ignore());
             CreateMap<CompraProveedorCreaDto, CompraProveedor>();
         }
     }

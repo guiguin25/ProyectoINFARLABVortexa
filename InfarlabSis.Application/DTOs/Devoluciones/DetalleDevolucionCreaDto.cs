@@ -4,6 +4,9 @@ namespace InfarlabSis.Application.DTOs.Devoluciones
 {
     public class DetalleDevolucionCreaDto
     {
+        [Required(ErrorMessage = "El ID de la devolucion es obligatorio.")]
+        public int IdDevolucion { get; set; }
+
         [Required(ErrorMessage = "El ID del producto es obligatorio.")]
         public int IdProducto { get; set; }
 

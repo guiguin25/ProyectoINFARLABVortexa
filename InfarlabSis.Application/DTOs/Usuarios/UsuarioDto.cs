@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace InfarlabSis.Application.DTOs.Usuarios
 {
-    // 1. DTO para respuestas / lecturas (GET) - Omitimos contraseñas por seguridad
+    // 1. DTO para respuestas / lecturas (GET)
     public class UsuarioDto
     {
         public int IdUsuario { get; set; }
@@ -19,12 +17,28 @@ namespace InfarlabSis.Application.DTOs.Usuarios
         public DateTime FechaCreacion { get; set; }
     }
 
-    // 2. DTO para creación (POST) - Pide la contraseña requerida
+    // 2. DTO para creación (POST) - Solicita datos de la Persona + Datos de la Cuenta
     public class CrearUsuarioDto
     {
-        [Required(ErrorMessage = "El ID de la persona es obligatorio.")]
-        public int IdPersona { get; set; }
+        // --- Datos de la Persona ---
+        [Required(ErrorMessage = "El nombre de la persona es obligatorio.")]
+        [StringLength(100)]
+        public string Nombre { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "El primer apellido es obligatorio.")]
+        [StringLength(100)]
+        public string ApPat { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string? ApMat { get; set; }
+
+        [StringLength(20)]
+        public string? Ci { get; set; }
+
+        [StringLength(20)]
+        public string? Telefono { get; set; }
+
+        // --- Datos de la Cuenta de Usuario ---
         [Required(ErrorMessage = "El nombre de usuario es obligatorio.")]
         [StringLength(50)]
         public string NombreUsuario { get; set; } = string.Empty;
@@ -42,7 +56,7 @@ namespace InfarlabSis.Application.DTOs.Usuarios
         public int IdRol { get; set; }
     }
 
-    // 3. DTO para actualización (PUT) - Contraseña opcional
+    // 3. DTO para actualización (PUT)
     public class ActualizarUsuarioDto
     {
         [Required(ErrorMessage = "El correo electrónico es obligatorio.")]

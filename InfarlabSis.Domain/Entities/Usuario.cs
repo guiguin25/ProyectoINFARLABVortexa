@@ -15,6 +15,12 @@ namespace InfarlabSis.Domain.Entities
         public bool Estado { get; set; } = true;
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
+        //AUTHENTICATOR
+        public string? ClaveSecreta2FA { get; set; }
+        public bool TwoFactorHabilitado { get; set; } = false;
+        public string? TokenRecuperacion { get; set; }
+        public DateTime? ExpiracionToken { get; set; }
+
         // Propiedades de navegación
         public Persona Persona { get; set; } = null!;
         public Rol Rol { get; set; } = null!;

@@ -29,7 +29,7 @@ namespace InfarlabSis.Infrastructure.Persistence
         public DbSet<AreaCalidad> AreasCalidad => Set<AreaCalidad>();
 
         // ==========================================
-        // Módulo de Ventas y Devoluciones (NUEVO)
+        // Módulo de Ventas y Devoluciones
         // ==========================================
         public DbSet<Venta> Ventas => Set<Venta>();
         public DbSet<DetalleVenta> DetalleVentas => Set<DetalleVenta>();
@@ -37,9 +37,11 @@ namespace InfarlabSis.Infrastructure.Persistence
         public DbSet<DetalleDevolucion> DetalleDevoluciones => Set<DetalleDevolucion>();
 
         // ==========================================
-        // Módulo de Compras (NUEVO)
+        // Módulo de Compras
         // ==========================================
         public DbSet<CompraProveedor> CompraProveedores => Set<CompraProveedor>();
+        public DbSet<VentaHistorial> VentaHistorials => Set<VentaHistorial>();
+        public DbSet<DetalleVentaHistorial> DetalleVentaHistorials => Set<DetalleVentaHistorial>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -266,6 +268,30 @@ namespace InfarlabSis.Infrastructure.Persistence
                       .WithMany()
                       .HasForeignKey(c => c.IdCategoria)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            //VENTAHISTORIAL
+            modelBuilder.Entity<VentaHistorial>(entity =>
+            {
+                entity.HasKey(e => e.IdHistorial);
+
+                entity.HasOne(e => e.UsuarioModifico)
+                      .WithMany()
+                      .HasForeignKey(e => e.IdUsuarioModifico)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(e => e.TipoCambio).HasMaxLength(50);
+                entity.Property(e => e.DatosAntes).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.DatosDespues).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.Observaciones).HasMaxLength(500);
+            });
+
+            //DETALLEVENTAHISTORIAL
+            modelBuilder.Entity<DetalleVentaHistorial>(entity =>
+            {
+                entity.HasKey(e => e.IdDetalleHistorial);
+                entity.Property(e => e.NombreProducto).HasMaxLength(200);
+                entity.Property(e => e.Accion).HasMaxLength(50);
             });
         }
     }

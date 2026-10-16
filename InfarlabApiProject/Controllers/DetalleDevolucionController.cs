@@ -55,14 +55,30 @@ namespace InfarlabApiProject.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearDetalleDevolucion([FromBody] DetalleDevolucionCreaDto dto)
         {
-            var nuevoDetalle = _mapper.Map<DetalleDevolucion>(dto);
-            nuevoDetalle.Estado = true;
+            // Validar que la devolución existe
+            var devolucionExiste = await _context.Devoluciones.AnyAsync(d => d.IdDevolucion == dto.IdDevolucion);
+            if (!devolucionExiste)
+                return BadRequest(new { mensaje = "La devolución no existe." });
 
-            _context.DetalleDevoluciones.Add(nuevoDetalle);
+            // Validar que el producto existe
+            var productoExiste = await _context.Productos.AnyAsync(p => p.IdProducto == dto.IdProducto);
+            if (!productoExiste)
+                return BadRequest(new { mensaje = "El producto no existe." });
+
+            var detalle = new DetalleDevolucion
+            {
+                IdDevolucion = dto.IdDevolucion, // ← Asegúrate de que esto NO sea 0
+                IdProducto = dto.IdProducto,
+                Cantidad = dto.Cantidad,
+                Estado = true
+            };
+
+            _context.DetalleDevoluciones.Add(detalle);
             await _context.SaveChangesAsync();
 
-            var resultadoDto = _mapper.Map<DetalleDevolucionDto>(nuevoDetalle);
-            return CreatedAtAction(nameof(GetDetalleDevolucion), new { id = nuevoDetalle.IdDetalleDevolucion }, resultadoDto);
+            // Retornar el detalle creado con su ID real
+            var detalleDto = _mapper.Map<DetalleDevolucionDto>(detalle);
+            return CreatedAtAction(nameof(GetDetalleDevolucion), new { id = detalle.IdDetalleDevolucion }, detalleDto);
         }
 
         [HttpPut("{id:int}")]

@@ -17,11 +17,11 @@ namespace InfarlabApiProject
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            
+
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             // Configuración JWT
@@ -45,6 +45,9 @@ namespace InfarlabApiProject
             });
 
             builder.Services.AddControllers();
+
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
             builder.Services.AddEndpointsApiExplorer();
 
             // Configuración de Swagger para Swashbuckle 10.x / OpenAPI v2.0+
@@ -67,7 +70,7 @@ namespace InfarlabApiProject
                     BearerFormat = "JWT"
                 });
 
-                
+
                 c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
                 {
                     {
@@ -81,6 +84,30 @@ namespace InfarlabApiProject
             builder.Services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<MappingProfile>();
+            });
+            // ==========================================
+            // NUEVO: CONFIGURACIÓN CORS PARA EL FRONTEND
+            // ==========================================
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("PermitirFrontend", policy =>
+                {
+                    policy.AllowAnyOrigin()    // Permite que tu web local se conecte sin importar el puerto
+                          .AllowAnyHeader()    // Permite enviar headers como Authorization para el JWT
+                          .AllowAnyMethod();   // Permite que funcionen los métodos GET, POST, PUT, DELETE
+                });
+            });
+
+            //CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.SetIsOriginAllowed(origin => true)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
             });
 
             var app = builder.Build();
@@ -116,6 +143,17 @@ namespace InfarlabApiProject
             }
 
             app.UseHttpsRedirection();
+<<<<<<< HEAD
+
+            app.UseCors("AllowFrontend");
+
+=======
+            // ==========================================
+            // NUEVO: ACTIVAR CORS
+            // IMPORTANTE: Debe ir EXACTAMENTE aquí (después de HttpsRedirection y antes de Authentication)
+            // ==========================================
+            app.UseCors("PermitirFrontend");
+>>>>>>> 48bd47a670390ab061b33cfa056ff059e88ac67f
             app.UseAuthentication();
             app.UseAuthorization();
 
