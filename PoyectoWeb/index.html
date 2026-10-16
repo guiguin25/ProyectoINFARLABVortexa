@@ -1,67 +1,202 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INFARLAB - Acceso al Sistema</title>
-<link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFARLAB - Acceso al Sistema</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="auth-body">
  
     <div class="auth-container">
-<!-- VISTA 1: FORMULARIO DE LOGIN -->
-<div id="login-card" class="auth-card">
-<div class="auth-header">
-<i class="fa-solid fa-flask-vial"></i>
-<h1>INFARLAB</h1>
-<p>Sistema de Gestión Farmacéutica y Logística</p>
-</div>
- 
+        <!-- LOGIN -->
+        <div id="login-card" class="auth-card">
+            <div class="auth-header">
+                <div class="logo-icon"><i class="fa-solid fa-flask-vial"></i></div>
+                <h1>INFARLAB</h1>
+                <p>Laboratorio Farmacéutico Industrial</p>
+            </div>
             <form id="form-login">
-<div class="input-group">
-<i class="fa-solid fa-user"></i>
-<input type="text" id="username" placeholder="Nombre de usuario" required>
-</div>
- 
                 <div class="input-group">
-<i class="fa-solid fa-lock"></i>
-<input type="password" id="password" placeholder="Contraseña" required>
-</div>
- 
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="username" placeholder="Nombre de usuario" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password" placeholder="Contraseña" required>
+                    </div>
+                </div>
                 <div class="auth-actions">
-<label><input type="checkbox" id="remember-me"> Recordarme</label>
-<a href="#" id="link-forgot" class="forgot-link">¿Olvidaste tu contraseña?</a>
-</div>
- 
+                    <a href="#" id="link-forgot" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
                 <button type="submit" class="btn-primary">Iniciar Sesión</button>
-</form>
-</div>
+            </form>
+            <div class="auth-footer">
+                <p>¿No tienes una cuenta? <a href="#" id="link-register" class="register-link">Crear Cuenta</a></p>
+            </div>
+        </div>
  
-        <!-- VISTA 2: CONTINGENCIA (RECUPERACIÓN DE CONTRASEÑA POR CORREO) -->
+        <!--INGRESAR EMAIL-->
 <div id="forgot-card" class="auth-card hidden">
-<div class="auth-header">
-<i class="fa-solid fa-key"></i>
-<h1>Recuperación</h1>
-<p>Ingrese su correo electrónico registrado en el sistema</p>
+    <div class="auth-header">
+        <div class="logo-icon warning"><i class="fa-solid fa-key"></i></div>
+        <h1>Recuperar Contraseña</h1>
+        <p>Ingresa tu correo electrónico registrado</p>
+    </div>
+    <form id="form-forgot-step1">
+        <div class="input-group email-validation">
+            <div class="input-wrapper">
+                <i class="fa-solid fa-envelope"></i>
+                <input type="email" id="recovery-email" placeholder="correo@infarlab.com" required>
+            </div>
+            <div class="validation-message" id="email-validation-msg">
+                SOLO SE ACEPTA FORMATO @infarlab.com
+            </div>
+        </div>
+        <button type="submit" class="btn-primary">Validar Código</button>
+        <button type="button" id="btn-back-login" class="btn-secondary">Volver al Login</button>
+    </form>
 </div>
- 
-            <div id="forgot-alert" class="alert-message hidden"></div>
- 
-            <form id="form-forgot">
-<div class="input-group">
-<i class="fa-solid fa-envelope"></i>
-<input type="email" id="recovery-email" placeholder="correo@infarlab.bo" required>
+
+<!--INGRESAR CÓDIGO-->
+<div id="forgot-card-step2" class="auth-card hidden">
+    <div class="auth-header">
+        <div class="logo-icon warning"><i class="fa-solid fa-shield-halved"></i></div>
+        <h1>Verificación</h1>
+        <p>Ingresa el código de 6 dígitos</p>
+    </div>
+    <form id="form-forgot-step2">
+        <div class="input-group">
+            <div class="input-wrapper">
+                <i class="fa-solid fa-shield-halved"></i>
+                <input type="text" id="recovery-totp" placeholder="123456" required pattern="[0-9]{6}" maxlength="6">
+            </div>
+        </div>
+        <button type="submit" class="btn-primary">Continuar</button>
+        <button type="button" id="btn-back-step1" class="btn-secondary">Volver</button>
+    </form>
 </div>
- 
-                <button type="submit" class="btn-primary">Enviar enlace de recuperación</button>
-<button type="button" id="btn-back-login" class="btn-secondary">Volver al Login</button>
-</form>
+
+<!--CAMBIAR CONTRASEÑA-->
+<div id="forgot-card-step3" class="auth-card hidden">
+    <div class="auth-header">
+        <div class="logo-icon success"><i class="fa-solid fa-lock"></i></div>
+        <h1>Nueva Contraseña</h1>
+        <p>Establece tu nueva contraseña</p>
+    </div>
+    <form id="form-forgot-step3">
+        <div class="input-group">
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="new-password" placeholder="Nueva contraseña" minlength="6" required>
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="confirm-password" placeholder="Confirmar contraseña" minlength="6" required>
+            </div>
+        </div>
+        <button type="submit" class="btn-primary">Restablecer Contraseña</button>
+        <button type="button" id="btn-back-step2" class="btn-secondary">Volver</button>
+    </form>
 </div>
-</div>
+
+        <!--REGISTRO-->
+        <div id="register-card" class="auth-card register-card-wide hidden">
+            <div class="auth-header">
+                <div class="logo-icon success"><i class="fa-solid fa-user-plus"></i></div>
+                <h1>Crear Cuenta</h1>
+                <p>Complete los datos para registrarse en INFARLAB</p>
+            </div>
+            <div id="register-alert" class="alert-message hidden"></div>
+            <form id="form-register">
+                <div class="register-grid">
+                    <div class="input-group">
+                        <label>Nombre</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="reg-nombre" placeholder="Ej: Juan Carlos" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Apellido Paterno</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-user-tag"></i>
+                            <input type="text" id="reg-apPat" placeholder="Ej: Pérez" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Apellido Materno</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-user-tag"></i>
+                            <input type="text" id="reg-apMat" placeholder="Ej: Gómez">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Cédula de Identidad</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-address-card"></i>
+                            <input type="text" id="reg-ci" placeholder="Ej: 1234567" required pattern="[0-9]{6,10}">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Correo electrónico</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-envelope"></i>
+                            <input type="email" id="reg-email" placeholder="usuario@infarlab.com" required>
+                        </div>
+                    </div>
+                    <div class="input-group full-width">
+                        <label>Seleccione un rol</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <select id="reg-rol" required>
+                                <option value="" disabled selected>Seleccione un rol</option>
+                                <option value="1">Administrador</option>
+                                <option value="2">Encargado de Logística</option>
+                                <option value="3">Control de Calidad</option>
+                                <option value="4">Almacen Materia Prima</option>
+                                <option value="5">Almacen Producto Terminado</option>
+                                <option value="6">Ventas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group full-width">
+                        <label>Nombre de usuario</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-at"></i>
+                            <input type="text" id="reg-username" placeholder="Se generará automáticamente" readonly>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" required minlength="6">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Confirmar contraseña</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="reg-confirm-password" placeholder="Repita la contraseña" required>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary btn-register-submit">Registrarse</button>
+                <button type="button" id="btn-back-login-from-register" class="btn-secondary">Volver al Login</button>
+            </form>
+        </div>
+    </div>
  
-    <script src="auth.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
- 

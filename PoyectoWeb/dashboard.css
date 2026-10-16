@@ -25,7 +25,6 @@ body.dashboard-body {
     min-height: 100vh;
 }
 
-/* Sidebar */
 .sidebar {
     width: var(--sidebar-width);
     background: var(--card-bg);
@@ -93,7 +92,6 @@ body.dashboard-body {
     font-size: 14px;
 }
 
-/* Main Content Area */
 .main-content {
     margin-left: var(--sidebar-width);
     flex-grow: 1;
@@ -152,7 +150,6 @@ body.dashboard-body {
     color: var(--text-muted);
 }
 
-/* Widgets / Cards Summary */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -180,9 +177,20 @@ body.dashboard-body {
     font-size: 20px;
 }
 
-.stat-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
-.stat-icon.yellow { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
-.stat-icon.blue { background: rgba(2, 132, 199, 0.15); color: var(--primary); }
+.stat-icon.red { 
+    background: rgba(239, 68, 68, 0.15); 
+    color: var(--danger); 
+}
+
+.stat-icon.yellow { 
+    background: rgba(245, 158, 11, 0.15); 
+    color: var(--warning); 
+}
+
+.stat-icon.blue { 
+    background: rgba(2, 132, 199, 0.15); 
+    color: var(--primary); 
+}
 
 .stat-info h4 {
     font-size: 13px;
@@ -195,7 +203,6 @@ body.dashboard-body {
     font-weight: 700;
 }
 
-/* Tables */
 .recent-activity {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -237,7 +244,6 @@ th {
     background: rgba(255, 255, 255, 0.02);
 }
 
-/* Alertas y Líneas rojas y amarillas de las entidades */
 tr.row-warning td:first-child {
     border-left: 4px solid var(--warning);
 }

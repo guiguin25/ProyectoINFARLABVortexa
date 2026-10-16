@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>INFARLAB - Configurar Google Authenticator</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+                <h1>Configurar 2FA</h1>
+                <p>Escanea el código QR con Google Authenticator</p>
+            </div>
+
+            <div id="alert-2fa" class="alert-message hidden"></div>
+
+            <!--MUESTRA EL QR-->
+            <div id="paso-qr">
+                <div style="text-align: center; margin: 20px 0;">
+                    <img id="qr-image" src="" alt="QR Code" style="background: white; padding: 15px; border-radius: 10px;">
+                </div>
+                <p style="text-align: center; color: #94a3b8; font-size: 13px;">
+                    O ingresa manualmente esta clave en tu app:
+                </p>
+                <div style="background: rgba(15,23,42,0.6); padding: 12px; border-radius: 8px; text-align: center; font-family: monospace; font-size: 16px; letter-spacing: 2px; color: #38bdf8; margin: 10px 0;">
+                    <span id="clave-manual"></span>
+                </div>
+                <button class="btn-primary" onclick="mostrarPasoConfirmacion()">
+                    <i class="fa-solid fa-check"></i> Ya escaneé el código
+                </button>
+            </div>
+
+            <<!--CÓDIGO-->
+            <div id="paso-confirmar" style="display: none;">
+                <div class="input-group">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <input type="text" id="codigo-2fa" placeholder="Código de 6 dígitos" maxlength="6" pattern="[0-9]{6}">
+                </div>
+                <button class="btn-primary" onclick="confirmar2FA()">
+                    <i class="fa-solid fa-lock"></i> Activar
+                </button>
+            </div>
+
+            <div class="auth-footer">
+                <a href="usuarios.html" class="forgot-link">Volver a Usuarios</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "https://localhost:7067/api";
+        const params = new URLSearchParams(window.location.search);
+        const idUsuario = params.get('id');
+        let claveSecreta = '';
+
+        //CARGA EL QR AL INICO
+        window.addEventListener('load', async () => {
+            if (!idUsuario) {
+                alert("ID de usuario no válido");
+                window.location.href = 'usuarios.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/Auth/configurar-2fa`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idUsuario: parseInt(idUsuario) })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    claveSecreta = data.claveSecreta;
+                    
+                    //GENERA EL QR MEDIANTE LA DEPENDENCIA DE LA API
+                    document.getElementById('qr-image').src = 
+                        `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.uriQR)}`;
+                    document.getElementById('clave-manual').textContent = data.claveSecreta;
+                } else {
+                    alert(data.mensaje);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Error de conexión");
+            }
+        });
+
+        function mostrarPasoConfirmacion() {
+            document.getElementById('paso-qr').style.display = 'none';
+            document.getElementById('paso-confirmar').style.display = 'block';
+        }
+
+        async function confirmar2FA() {
+            const codigo = document.getElementById('codigo-2fa').value;
+            if (codigo.length !== 6) {
+                alert("El código debe tener 6 dígitos");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/Auth/confirmar-2fa`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idUsuario: parseInt(idUsuario), codigo })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert("✅ 2FA activado y usuario habilitado exitosamente");
+                    window.location.href = 'usuarios.html';
+                } else {
+                    alert("❌ " + data.mensaje);
+                }
+            } catch (error) {
+                alert("Error de conexión");
+            }
+        }
+    </script>
+</body>
+</html>

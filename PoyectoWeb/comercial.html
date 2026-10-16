@@ -1,65 +1,187 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INFARLAB - Módulo Comercial</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="dashboard.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFARLAB - Módulo Comercial</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="comercial.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="dashboard-body">
- 
     <aside class="sidebar">
-<div class="sidebar-brand">
-<i class="fa-solid fa-flask-vial"></i>
-<span>INFARLAB</span>
-</div>
-<ul class="sidebar-menu">
-<li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-<li><a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Productos & Lotes</a></li>
-<li class="active"><a href="comercial.html"><i class="fa-solid fa-handshake"></i> Comercial & Clientes</a></li>
-<li><a href="cuarentena.html"><i class="fa-solid fa-triangle-exclamation"></i> Calidad / Cuarentena</a></li>
-<li><a href="usuarios.html"><i class="fa-solid fa-users-gear"></i> Usuarios y Roles</a></li>
-</ul>
-<div class="sidebar-footer">
-<a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
-</div>
-</aside>
- 
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-flask-vial"></i>
+            <span>INFARLAB</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Productos & Lotes</a></li>
+            <li class="active"><a href="comercial.html"><i class="fa-solid fa-handshake"></i> Comercial & Clientes</a></li>
+            <li><a href="cuarentena.html"><i class="fa-solid fa-triangle-exclamation"></i> Calidad / Cuarentena</a></li>
+            <li><a href="usuarios.html"><i class="fa-solid fa-users-gear"></i> Usuarios y Roles</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
+        </div>
+    </aside>
+
     <main class="main-content">
-<header class="topbar">
-<div class="topbar-title">
-<h2>Módulo Comercial (Clientes, Proveedores, Ventas, Compras)</h2>
-<p>Gestión de transacciones y socios comerciales</p>
-</div>
-</header>
+        <header class="topbar">
+            <div class="topbar-title">
+                <h2>Módulo Comercial</h2>
+                <p>Gestión de transacciones y socios comerciales</p>
+            </div>
+        </header>
  
         <section class="recent-activity">
-<div class="section-header">
-<h3>Proveedores y Clientes</h3>
-<button class="btn-primary-sm" id="btn-nuevo-registro"><i class="fa-solid fa-user-plus"></i> Nuevo Registro</button>
-</div>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>Entidad</th>
-<th>Nombre / Razón Social</th>
-<th>Teléfono</th>
-<th>Email</th>
-<th>Tipo</th>
-</tr>
-</thead>
-<tbody id="tabla-comercial-body">
-<!-- Los datos se cargarán dinámicamente desde la API -->
-</tbody>
-</table>
-</div>
-</section>
-</main>
-<script src="comercial.js"></script>
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-button active" onclick="cambiarTab('clientes')">
+                        <i class="fa-solid fa-users"></i> Clientes
+                    </button>
+                    <button class="tab-button" onclick="cambiarTab('proveedores')">
+                        <i class="fa-solid fa-truck"></i> Proveedores
+                    </button>
+                    <button class="tab-button" onclick="cambiarTab('ventas')">
+                        <i class="fa-solid fa-cart-shopping"></i> Ventas
+                    </button>
+                    <button class="tab-button" onclick="cambiarTab('compras')">
+                        <i class="fa-solid fa-box-open"></i> Compras
+                    </button>
+                </div>
+            </div>
+
+            <!--CLIENTES-->
+            <div id="tab-clientes" class="tab-content active">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div>
+                            <h3 class="section-title">Clientes Registrados</h3>
+                            <p class="section-description">Gestión de clientes y información de contacto</p>
+                        </div>
+                        <button class="btn-primary-sm" onclick="abrirModalCliente()">
+                            <i class="fa-solid fa-user-plus"></i> Nuevo Cliente
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre / Razón Social</th>
+                                    <th>Teléfono</th>
+                                    <th>Email</th>
+                                    <th>Dirección</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-clientes">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!--PROVEEDORES-->
+            <div id="tab-proveedores" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div>
+                            <h3 class="section-title">Proveedores Registrados</h3>
+                            <p class="section-description">Gestión de proveedores y contactos comerciales</p>
+                        </div>
+                        <button class="btn-primary-sm" onclick="abrirModalProveedor()">
+                            <i class="fa-solid fa-truck-plus"></i> Nuevo Proveedor
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre / Razón Social</th>
+                                    <th>Teléfono</th>
+                                    <th>Email</th>
+                                    <th>Dirección</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-proveedores">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!--VENTAS-->
+            <div id="tab-ventas" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div>
+                            <h3 class="section-title">Registro de Ventas</h3>
+                            <p class="section-description">Historial de transacciones de venta</p>
+                        </div>
+                        <button class="btn-primary-sm" onclick="abrirModalVenta()">
+                            <i class="fa-solid fa-plus"></i> Nueva Venta
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID Venta</th>
+                                    <th>Cliente</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-ventas"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!--COMPRAS-->
+            <div id="tab-compras" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div>
+                            <h3 class="section-title">Registro de Compras</h3>
+                            <p class="section-description">Historial de compras a proveedores</p>
+                        </div>
+                        <button class="btn-primary-sm" onclick="abrirModalCompra()">
+                            <i class="fa-solid fa-plus"></i> Nueva Compra
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID Compra</th>
+                                    <th>Proveedor</th>
+                                    <th>Fecha</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-compras">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script src="comercial.js"></script>
 </body>
 </html>
- 

@@ -1,65 +1,154 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INFARLAB - Usuarios y Roles</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="dashboard.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFARLAB - Usuarios y Roles</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="dashboard-body">
  
     <aside class="sidebar">
-<div class="sidebar-brand">
-<i class="fa-solid fa-flask-vial"></i>
-<span>INFARLAB</span>
-</div>
-<ul class="sidebar-menu">
-<li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-<li><a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Productos & Lotes</a></li>
-<li><a href="comercial.html"><i class="fa-solid fa-handshake"></i> Comercial & Clientes</a></li>
-<li><a href="cuarentena.html"><i class="fa-solid fa-triangle-exclamation"></i> Calidad / Cuarentena</a></li>
-<li class="active"><a href="usuarios.html"><i class="fa-solid fa-users-gear"></i> Usuarios y Roles</a></li>
-</ul>
-<div class="sidebar-footer">
-<a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
-</div>
-</aside>
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-flask-vial"></i>
+            <span>INFARLAB</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Productos & Lotes</a></li>
+            <li><a href="comercial.html"><i class="fa-solid fa-handshake"></i> Comercial & Clientes</a></li>
+            <li><a href="cuarentena.html"><i class="fa-solid fa-triangle-exclamation"></i> Calidad / Cuarentena</a></li>
+            <li class="active"><a href="usuarios.html"><i class="fa-solid fa-users-gear"></i> Usuarios y Roles</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
+        </div>
+    </aside>
  
     <main class="main-content">
-<header class="topbar">
-<div class="topbar-title">
-<h2>Gestión de Seguridad (Persona, Usuario, Rol)</h2>
-<p>Administración de credenciales y privilegios en el sistema</p>
-</div>
-</header>
+        <header class="topbar">
+            <div class="topbar-title">
+                <h2>Gestión de Seguridad</h2>
+                <p>Administración de credenciales y privilegios en el sistema</p>
+            </div>
+        </header>
  
         <section class="recent-activity">
-<div class="section-header">
-<h3>Usuarios del Sistema</h3>
-<button class="btn-primary-sm" id="btn-nuevo-usuario"><i class="fa-solid fa-user-plus"></i> Nuevo Usuario</button>
-</div>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>ID Usuario</th>
-<th>Persona Asociada</th>
-<th>Username</th>
-<th>Rol (rol)</th>
-<th>Estado</th>
-</tr>
-</thead>
-<tbody id="tabla-usuarios-body">
-<!-- Los datos se consumirán dinámicamente vía API -->
-</tbody>
-</table>
-</div>
-</section>
-</main>
-<script src="usuarios.js"></script>
+            <div class="section-header">
+                <h3>Usuarios del Sistema</h3>
+                <button class="btn-primary-sm" id="btn-nuevo-usuario">
+                    <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Persona Asociada</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                            <th>REACTIVAR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-usuarios">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!--USUARIO -->
+    <div id="modal-usuario" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Nuevo Usuario</h3>
+                <button class="modal-close" id="btn-cerrar-modal">&times;</button>
+            </div>
+            <form id="form-usuario-crud">
+                <input type="hidden" id="crud-id-usuario">
+                <input type="hidden" id="crud-id-persona">
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Nombre</label>
+                        <input type="text" id="crud-nombre" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Apellido Paterno</label>
+                        <input type="text" id="crud-apPat" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Apellido Materno</label>
+                        <input type="text" id="crud-apMat">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>CI</label>
+                        <input type="text" id="crud-ci" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" id="crud-email" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" id="crud-username" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Rol</label>
+                        <select id="crud-rol" required>
+                            <option value="1">Administrador</option>
+                            <option value="2">Encargado de Logística</option>
+                            <option value="3">Control de Calidad</option>
+                            <option value="4">Almacen Materia Prima</option>
+                            <option value="5">Almacen Producto Terminado</option>
+                            <option value="6">Ventas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!--CONTRASEÑA - NUEVO USUARIO-->
+                <div class="form-row" id="row-password" style="display: none;">
+                    <div class="input-group">
+                        <label>Contraseña Inicial <small>(Obligatoria al crear)</small></label>
+                        <input type="password" id="crud-password" placeholder="Mínimo 6 caracteres">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Estado</label>
+                        <select id="crud-estado">
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btn-cancelar-modal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
- 

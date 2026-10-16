@@ -1,384 +1,677 @@
 const API_BASE_URL = "https://localhost:7067/api";
- 
+
 document.addEventListener("DOMContentLoaded", () => {
-
+    // === ELEMENTOS DEL DOM ===
     const loginCard = document.getElementById("login-card");
-
     const forgotCard = document.getElementById("forgot-card");
-
+    const forgotCardStep2 = document.getElementById("forgot-card-step2");
+    const forgotCardStep3 = document.getElementById("forgot-card-step3");
+    
     const linkForgot = document.getElementById("link-forgot");
-
     const btnBackLogin = document.getElementById("btn-back-login");
-
     const formLogin = document.getElementById("form-login");
+    
+    const formStep1 = document.getElementById("form-forgot-step1");
+    const formStep2 = document.getElementById("form-forgot-step2");
+    const formStep3 = document.getElementById("form-forgot-step3");
+    const btnBackStep1 = document.getElementById("btn-back-step1");
+    const btnBackStep2 = document.getElementById("btn-back-step2");
+    
+    const rememberMeCheckbox = document.getElementById("remember-me");
+    const usernameInput = document.getElementById("username");
+    
+    const registerCard = document.getElementById("register-card");
+    const linkRegister = document.getElementById("link-register");
+    const btnBackLoginFromRegister = document.getElementById("btn-back-login-from-register");
+    const formRegister = document.getElementById("form-register");
 
-    const formForgot = document.getElementById("form-forgot");
+    let recoveryEmail = "";
+    let recoveryToken = "";
 
-    const forgotAlert = document.getElementById("forgot-alert");
- 
+    //CARGAR USUARIO RECORDADO
+    if (rememberMeCheckbox && usernameInput) {
+        const rememberedUser = localStorage.getItem("infarlab_remember_user");
+        if (rememberedUser) {
+            usernameInput.value = rememberedUser;
+            rememberMeCheckbox.checked = true;
+        }
+    }
+
+    //NAVEGACIÓN ENTRE VISTAS
     if (linkForgot && forgotCard && loginCard) {
-
         linkForgot.addEventListener("click", (e) => {
-
             e.preventDefault();
-
             loginCard.classList.add("hidden");
-
             forgotCard.classList.remove("hidden");
-
-            if (forgotAlert) forgotAlert.classList.add("hidden");
-
+            if (forgotCardStep2) forgotCardStep2.classList.add("hidden");
+            if (forgotCardStep3) forgotCardStep3.classList.add("hidden");
         });
-
     }
- 
-    if (btnBackLogin && forgotCard && loginCard) {
 
+    if (btnBackLogin && loginCard) {
         btnBackLogin.addEventListener("click", () => {
-
-            forgotCard.classList.add("hidden");
-
+            if (forgotCard) forgotCard.classList.add("hidden");
+            if (forgotCardStep2) forgotCardStep2.classList.add("hidden");
+            if (forgotCardStep3) forgotCardStep3.classList.add("hidden");
             loginCard.classList.remove("hidden");
-
         });
-
     }
- 
-    if (formForgot) {
 
-        formForgot.addEventListener("submit", (e) => {
-
+    if (linkRegister && registerCard && loginCard) {
+        linkRegister.addEventListener("click", (e) => {
             e.preventDefault();
+            loginCard.classList.add("hidden");
+            registerCard.classList.remove("hidden");
+        });
+    }
 
-            const emailInput = document.getElementById("recovery-email").value;
+    if (btnBackLoginFromRegister && loginCard) {
+        btnBackLoginFromRegister.addEventListener("click", () => {
+            registerCard.classList.add("hidden");
+            loginCard.classList.remove("hidden");
+            if (formRegister) formRegister.reset();
+        });
+    }
 
-            if (emailInput) {
+    if (btnBackStep1 && forgotCard && forgotCardStep2) {
+        btnBackStep1.addEventListener("click", () => {
+            forgotCardStep2.classList.add("hidden");
+            forgotCard.classList.remove("hidden");
+        });
+    }
 
-                forgotAlert.textContent = `Se ha enviado un enlace de recuperación al correo: ${emailInput}.`;
+    if (btnBackStep2 && forgotCardStep2 && forgotCardStep3) {
+        btnBackStep2.addEventListener("click", () => {
+            forgotCardStep3.classList.add("hidden");
+            forgotCardStep2.classList.remove("hidden");
+        });
+    }
 
-                forgotAlert.className = "alert-message alert-success";
+    const recoveryEmailInput = document.getElementById("recovery-email");
+    const emailValidationMsg = document.getElementById("email-validation-msg");
 
-                forgotAlert.classList.remove("hidden");
-
-                setTimeout(() => { formForgot.reset(); }, 3000);
-
+    if (recoveryEmailInput) {
+        recoveryEmailInput.addEventListener("input", (e) => {
+            const email = e.target.value.trim();
+            const infarlabPattern = /^[a-zA-Z0-9._%+-]+@infarlab\.com$/i;
+            
+            if (email === "") {
+                recoveryEmailInput.classList.remove("valid", "invalid");
+                if (emailValidationMsg) emailValidationMsg.classList.remove("show", "error", "success");
+            } else if (infarlabPattern.test(email)) {
+                recoveryEmailInput.classList.remove("invalid");
+                recoveryEmailInput.classList.add("valid");
+                if (emailValidationMsg) {
+                    emailValidationMsg.classList.remove("error");
+                    emailValidationMsg.classList.add("show", "success");
+                    emailValidationMsg.textContent = "Formato correcto @infarlab.com";
+                }
+            } else {
+                recoveryEmailInput.classList.remove("valid");
+                recoveryEmailInput.classList.add("invalid");
+                if (emailValidationMsg) {
+                    emailValidationMsg.classList.remove("success");
+                    emailValidationMsg.classList.add("show", "error");
+                    emailValidationMsg.textContent = "SOLO SE ACEPTA FORMATO @infarlab.com";
+                }
             }
-
         });
-
+        
+        recoveryEmailInput.addEventListener("blur", () => {
+            const email = recoveryEmailInput.value.trim();
+            const infarlabPattern = /^[a-zA-Z0-9._%+-]+@infarlab\.com$/i;
+            
+            if (email && !infarlabPattern.test(email)) {
+                recoveryEmailInput.classList.add("invalid");
+                if (emailValidationMsg) {
+                    emailValidationMsg.classList.add("show", "error");
+                    emailValidationMsg.textContent = "SOLO SE ACEPTA FORMATO @infarlab.com";
+                }
+            }
+        });
     }
- 
-    // 1. LOGIN FUNCIONAL (Auth/login)[cite: 4]
 
-    if (formLogin) {
-
-        formLogin.addEventListener("submit", async (e) => {
-
+    //INGRESAR EK CORREO
+    if (formStep1) {
+        formStep1.addEventListener("submit", (e) => {
             e.preventDefault();
+            recoveryEmail = document.getElementById("recovery-email").value.trim();
+            const infarlabPattern = /^[a-zA-Z0-9._%+-]+@infarlab\.com$/i;
+            
+            if (!recoveryEmail || !recoveryEmail.includes('@')) {
+                Swal.fire({ icon: 'warning', title: 'Email Requerido', text: 'Ingresa un correo electrónico.' });
+                return;
+            }
+            
+            if (!infarlabPattern.test(recoveryEmail)) {
+                Swal.fire({ icon: 'error', title: 'Email Inválido', text: 'Solo se aceptan correos con dominio @infarlab.com' });
+                return;
+            }
+            
+            forgotCard.classList.add("hidden");
+            forgotCardStep2.classList.remove("hidden");
+        });
+    }
 
-            const usernameInput = document.getElementById("username").value;
-
-            const passwordInput = document.getElementById("password").value;
- 
+    //CÓDIGO DE AUTHENTICATOR
+    if (formStep2) {
+        formStep2.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const totpCode = document.getElementById("recovery-totp").value.trim();
+            
+            if (!totpCode || totpCode.length !== 6) {
+                Swal.fire({ icon: 'warning', title: 'Código Inválido', text: 'Ingresa un código de 6 dígitos.' });
+                return;
+            }
+            
+            Swal.fire({ title: 'Validando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
             try {
-
-                const response = await fetch(`${API_BASE_URL}/Auth/login`, {
-
+                const response = await fetch(`${API_BASE_URL}/Auth/validar-totp-recuperacion`, {
                     method: "POST",
-
                     headers: { "Content-Type": "application/json" },
-
-                    body: JSON.stringify({
-
-                        emailOrUsername: usernameInput,
-
-                        contrasena: passwordInput
-
-                    })
-
+                    body: JSON.stringify({ email: recoveryEmail, codigoTotp: totpCode })
                 });
- 
+                
+                const text = await response.text();
+                const data = text ? JSON.parse(text) : {};
+                
+                if (response.ok && data.token) {
+                    recoveryToken = data.token;
+                    Swal.close();
+                    forgotCardStep2.classList.add("hidden");
+                    forgotCardStep3.classList.remove("hidden");
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || "Código inválido o usuario sin 2FA." });
+                }
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'No se pudo conectar con el servidor.' });
+            }
+        });
+    }
+
+    //RESTABLECER LA COMTRASEÑA
+    if (formStep3) {
+        formStep3.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const newPass = document.getElementById("new-password").value;
+            const confirmPass = document.getElementById("confirm-password").value;
+            
+            if (newPass !== confirmPass) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Las contraseñas no coinciden.' });
+                return;
+            }
+            
+            Swal.fire({ title: 'Restableciendo...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/Auth/restablecer-contrasena`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: recoveryEmail,
+                        token: recoveryToken,
+                        nuevaContrasena: newPass,
+                        confirmarContrasena: confirmPass
+                    })
+                });
+                
+                const text = await response.text();
+                const data = text ? JSON.parse(text) : {};
+                
                 if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Contraseña Actualizada!',
+                        text: data.mensaje || "Tu contraseña ha sido restablecida.",
+                        timer: 3000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        if (formStep1) formStep1.reset();
+                        if (formStep2) formStep2.reset();
+                        if (formStep3) formStep3.reset();
+                        recoveryEmail = "";
+                        recoveryToken = "";
+                        
+                        if (forgotCard) forgotCard.classList.add("hidden");
+                        if (forgotCardStep2) forgotCardStep2.classList.add("hidden");
+                        if (forgotCardStep3) forgotCardStep3.classList.add("hidden");
+                        if (loginCard) loginCard.classList.remove("hidden");
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || "No se pudo restablecer la contraseña." });
+                }
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'No se pudo conectar con el servidor.' });
+            }
+        });
+    }
 
+    //LOGIN
+    if (formLogin) {
+        formLogin.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!usernameInput) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/Auth/login`, { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ 
+                        emailOrUsername: usernameInput.value, 
+                        contrasena: document.getElementById("password").value 
+                    }) 
+                });
+
+                if (response.ok) {
                     const data = await response.json();
+                    if (data.token) localStorage.setItem("authToken", data.token);
+                    localStorage.setItem("usuarioNombre", data.nombreUsuario || usernameInput.value);
+                    localStorage.setItem("usuarioRol", data.rol || "Sin Rol");
+                    localStorage.setItem("usuarioEmail", data.email || "");
 
-                    if (data.token) {
-
-                        localStorage.setItem("authToken", data.token);
-
+                    if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+                        localStorage.setItem("infarlab_remember_user", usernameInput.value);
+                    } else {
+                        localStorage.removeItem("infarlab_remember_user");
                     }
 
-                    window.location.href = "dashboard.html";
-
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: '¡Bienvenido!', 
+                        text: `Iniciando sesión como ${data.nombreUsuario || usernameInput.value}`,
+                        timer: 1500, 
+                        showConfirmButton: false 
+                    }).then(() => { 
+                        window.location.href = "dashboard.html"; 
+                    });
                 } else {
-
-                    alert("Credenciales incorrectas o usuario inactivo[cite: 4].");
-
+                    const err = await response.json();
+                    Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: err.mensaje || 'Credenciales incorrectas.' });
                 }
-
             } catch (error) {
-
-                console.error("Error conectando con la API:", error);
-
-                window.location.href = "dashboard.html"; // Modo de respaldo si la API está apagada
-
+                Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'Verifica que la API esté corriendo en http://localhost:5147' });
             }
-
         });
-
     }
- 
-    // Enrutamiento automático según la página actual
+
+    //REGISTRO USURIO NUEVO
+    if (formRegister) {
+        const regNombre = document.getElementById("reg-nombre");
+        const regApPat = document.getElementById("reg-apPat");
+        const regApMat = document.getElementById("reg-apMat");
+        const regCI = document.getElementById("reg-ci");
+        const regEmail = document.getElementById("reg-email");
+        const regRol = document.getElementById("reg-rol");
+        const regUsername = document.getElementById("reg-username");
+        const regPassword = document.getElementById("reg-password");
+        const regConfirmPassword = document.getElementById("reg-confirm-password");
+
+        const rolesIniciales = { "1": "ADM", "2": "LOG", "3": "CAL", "4": "AMP", "5": "APT", "6": "VEN" };
+        let emailManuallyEdited = false;
+        let usernameGenerated = false;
+
+        function soloLetras(e) { e.target.value = e.target.value.replace(/[0-9]/g, ""); }
+        if (regNombre) regNombre.addEventListener("input", (e) => { soloLetras(e); actualizarAutocompletados(); });
+        if (regApPat) regApPat.addEventListener("input", (e) => { soloLetras(e); actualizarAutocompletados(); });
+        if (regApMat) regApMat.addEventListener("input", (e) => { soloLetras(e); actualizarAutocompletados(); });
+        if (regCI) regCI.addEventListener("input", (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, "").slice(0, 10); });
+
+        function actualizarAutocompletados() {
+            if (!regNombre || !regApPat || !regRol || !regEmail || !regUsername) return;
+            const nombre = regNombre.value.trim();
+            const apPat = regApPat.value.trim();
+            const apMat = regApMat ? regApMat.value.trim() : "";
+            const rolId = regRol.value;
+
+            if (nombre && apPat) {
+                const nombreNorm = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+                const apPatNorm = apPat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+                const emailGenerado = `${nombreNorm}.${apPatNorm}@infarlab.com`;
+                if (!emailManuallyEdited || regEmail.value.endsWith("@infarlab.com")) regEmail.value = emailGenerado;
+            }
+            if (nombre && apPat && rolId && !usernameGenerated) {
+                const nombreNorm = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+                const apPatNorm = apPat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+                const apMatNorm = apMat ? apMat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "") : "";
+                const numerosAleatorios = Math.floor(1000 + Math.random() * 9000);
+                regUsername.value = apMatNorm ? `${rolesIniciales[rolId]}_${nombreNorm}_${apPatNorm}_${apMatNorm}_${numerosAleatorios}` : `${rolesIniciales[rolId]}_${nombreNorm}_${apPatNorm}_${numerosAleatorios}`;
+                usernameGenerated = true;
+            }
+        }
+
+        if (regRol) regRol.addEventListener("change", () => { usernameGenerated = false; actualizarAutocompletados(); });
+        if (regEmail) regEmail.addEventListener("input", () => { if (!regEmail.value.endsWith("@infarlab.com")) emailManuallyEdited = true; });
+
+        formRegister.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (regPassword.value !== regConfirmPassword.value) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Las contraseñas no coinciden.' });
+                return;
+            }
+            
+            Swal.fire({ title: 'Registrando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try {
+                const response = await fetch(`${API_BASE_URL}/Auth/register`, { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ 
+                        nombre: regNombre.value.trim(), apPat: regApPat.value.trim(), apMat: regApMat.value.trim(), 
+                        ci: regCI.value.trim(), email: regEmail.value.trim(), idRol: parseInt(regRol.value), 
+                        username: regUsername.value.trim(), contrasena: regPassword.value 
+                    }) 
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    Swal.fire({ icon: 'success', title: '¡Cuenta Creada!', text: data.mensaje || 'Cuenta creada exitosamente.', timer: 2000, showConfirmButton: false });
+                    formRegister.reset();
+                    usernameGenerated = false;
+                    setTimeout(() => { registerCard.classList.add("hidden"); loginCard.classList.remove("hidden"); }, 2000);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || "No se pudo crear la cuenta." });
+                }
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'No se pudo conectar con el servidor.' });
+            }
+        });
+    }
 
     const currentPath = window.location.pathname;
-
-    if (currentPath.includes("inventario.html")) {
-
-        cargarProductosAPI();
-
-    } else if (currentPath.includes("comercial.html")) {
-
-        cargarComercialAPI();
-
-    } else if (currentPath.includes("usuarios.html")) {
-
-        cargarUsuariosAPI();
-
-    }
-
+    if (currentPath.includes("inventario.html") && typeof cargarProductosAPI === 'function') cargarProductosAPI();
+    else if (currentPath.includes("comercial.html") && typeof cargarComercialAPI === 'function') cargarComercialAPI();
+    else if (currentPath.includes("usuarios.html") && typeof cargarUsuariosAPI === 'function') cargarUsuariosAPI();
 });
- 
-// Obtener cabeceras con el Token JWT[cite: 4]
 
 function getAuthHeaders() {
-
     const token = localStorage.getItem("authToken");
-
-    return {
-
-        "Content-Type": "application/json",
-
-        "Authorization": token ? `Bearer ${token}` : ""
-
-    };
-
+    return { "Content-Type": "application/json", "Authorization": token ? `Bearer ${token}` : "" };
 }
- 
-// ==========================================
 
-// 2. MÓDULO DE PRODUCTOS (ProductosController)[cite: 4]
-
-// ==========================================
-
+// --- MÓDULO DE PRODUCTOS ---
 async function cargarProductosAPI() {
-
     try {
-
         const response = await fetch(`${API_BASE_URL}/Productos`, { headers: getAuthHeaders() });
-
         if (response.ok) {
-
             const productos = await response.json();
-
             const tbody = document.getElementById("tabla-productos");
-
             if (!tbody) return;
- 
-            tbody.innerHTML = ""; // Limpiamos la maqueta estática
- 
+            tbody.innerHTML = "";
             productos.forEach(prod => {
-
                 const tr = document.createElement("tr");
+                tr.innerHTML = `<td><strong>PRD-${prod.idProducto.toString().padStart(3, '0')}</strong></td><td>${prod.nombre}</td><td>${prod.stockActual} unids.</td><td>150 unids.</td><td>Bs. ${prod.precioVenta.toFixed(2)}</td><td><span class="status-approved">Disponible</span></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (error) { console.error("Error al cargar productos:", error); }
+}
+
+async function crearProductoAPI(productoDto) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Productos`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify(productoDto) });
+        if (response.ok) { 
+            Swal.fire({ icon: 'success', title: 'Producto Registrado', text: 'El producto se ha guardado correctamente.', timer: 2000, showConfirmButton: false });
+            cargarProductosAPI(); 
+        } else { 
+            const err = await response.json(); 
+            Swal.fire({ icon: 'error', title: 'Error', text: err.mensaje || "No se pudo registrar el producto." }); 
+        }
+    } catch (error) { console.error("Error en POST Producto:", error); }
+}
+
+// --- MÓDULO COMERCIAL ---
+async function cargarComercialAPI() {
+    try {
+        const [resClientes, resProveedores] = await Promise.all([ 
+            fetch(`${API_BASE_URL}/Clientes`, { headers: getAuthHeaders() }), 
+            fetch(`${API_BASE_URL}/Proveedores`, { headers: getAuthHeaders() }) 
+        ]);
+        if (resClientes.ok && resProveedores.ok) {
+            console.log("Clientes:", await resClientes.json());
+            console.log("Proveedores:", await resProveedores.json());
+        }
+    } catch (error) { console.error("Error cargando datos comerciales:", error); }
+}
+
+async function crearClienteAPI(crearClienteDto) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Clientes`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify(crearClienteDto) });
+        if (response.ok) { 
+            Swal.fire({ icon: 'success', title: 'Cliente Registrado', text: 'Los datos del cliente se han guardado correctamente.', timer: 2000, showConfirmButton: false });
+            cargarComercialAPI(); 
+        } else {
+            const err = await response.json();
+            Swal.fire({ icon: 'error', title: 'Error', text: err.mensaje || "No se pudo registrar el cliente." });
+        }
+    } catch (error) { console.error("Error al crear cliente:", error); }
+}
+
+// --- MÓDULO DE USUARIOS ---
+async function cargarUsuariosAPI() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Usuarios`, { headers: getAuthHeaders() });
+        if (response.ok) {
+            const usuarios = await response.json();
+            const tbody = document.getElementById("tabla-usuarios");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            if (usuarios.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='8' style='text-align:center; padding: 20px;'>No hay usuarios registrados</td></tr>";
+                return;
+            }
+
+            usuarios.forEach(u => {
+                const tr = document.createElement("tr");
+                const usuarioStr = encodeURIComponent(JSON.stringify(u));
+                const usuarioActivo = u.estado === true || u.Estado === true;
+                const idUsuario = u.idUsuario || u.IdUsuario;
 
                 tr.innerHTML = `
-<td><strong>PRD-${prod.idProducto.toString().padStart(3, '0')}</strong></td>
-<td>${prod.nombre}</td>
-<td>${prod.stockActual} unids.</td>
-<td>150 unids.</td>
-<td>Bs. ${prod.precioVenta.toFixed(2)}</td>
-<td><span class="status-approved">Disponible</span></td>
-
+                    <td>${idUsuario}</td>
+                    <td>${u.personaNombre || u.PersonaNombre || 'Sin Persona'}</td>
+                    <td>${u.nombreUsuario || u.NombreUsuario}</td>
+                    <td><span style="color: #f8fafc; font-size: 13px;">${u.email || u.Email || '-'}</span></td>
+                    <td><span class="badge" style="background: #3b82f6; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: white;">${u.rolNombre || u.RolNombre || 'Sin Rol'}</span></td>
+                    <td><span style="color: ${usuarioActivo ? '#22c55e' : '#ef4444'}; font-weight: bold;">${usuarioActivo ? 'Activo' : 'Inactivo'}</span></td>
+                    
+                    <td class="col-acciones">
+                        <div class="acciones-container">
+                            <button class="btn-action btn-edit" onclick="abrirModalEditar('${usuarioStr}')" title="Editar">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="eliminarUsuario(${idUsuario})" title="Eliminar">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                    
+                    <td class="col-2fa">
+                        ${!usuarioActivo 
+                            ? `<button class="btn-activar-2fa" onclick="configurar2FA(${idUsuario})">
+                                <i class="fa-solid fa-qrcode"></i> Activar
+                               </button>`
+                            : '<span class="sin-2fa">-</span>'
+                        }
+                    </td>
                 `;
-
                 tbody.appendChild(tr);
-
             });
-
         }
+    } catch (error) { console.error("Error al cargar usuarios:", error); }
+}
 
-    } catch (error) {
+function configurar2FA(idUsuario) {
+    window.location.href = `configurar-2fa.html?id=${idUsuario}`;
+}
 
-        console.error("Error al cargar productos:", error);
+//MODAL DE USUARIOS
+const modal = document.getElementById("modal-usuario");
+const formCrud = document.getElementById("form-usuario-crud");
+const rowPassword = document.getElementById("row-password");
 
+document.getElementById("btn-nuevo-usuario")?.addEventListener("click", () => {
+    if (formCrud){
+        formCrud.reset();
+    } 
+
+    const setIdUsuario = document.getElementById("crud-id-usuario");
+    if (setIdUsuario){
+        setIdUsuario.value = "";
     }
 
+    const setIdPersona = document.getElementById("crud-id-persona");
+    if (setIdPersona) {
+        setIdPersona.value = "";
+    }
+
+    const setTitle = document.getElementById("modal-titulo");
+    if (setTitle) {
+        setTitle.textContent = "Nuevo Usuario";
+    }
+    if (rowPassword) {
+        rowPassword.style.display = "flex";
+    }
+
+    const passwordInput = document.getElementById("crud-password");
+    if (passwordInput) { 
+        passwordInput.value = ""; 
+        passwordInput.required = true; 
+    }
+    if (modal) {
+        modal.classList.remove("hidden");
+    }
+});
+
+document.getElementById("btn-cerrar-modal")?.addEventListener("click", () => { if (modal) modal.classList.add("hidden"); });
+document.getElementById("btn-cancelar-modal")?.addEventListener("click", () => { if (modal) modal.classList.add("hidden"); });
+
+function abrirModalEditar(usuarioEncoded) {
+    try {
+        const u = JSON.parse(decodeURIComponent(usuarioEncoded));
+        if (!modal) return;
+
+        const setTitle = document.getElementById("modal-titulo");
+        if (setTitle) {
+            setTitle.textContent = "Editar Usuario";
+        }
+
+        const setIdUsuario = document.getElementById("crud-id-usuario");
+        if (setIdUsuario) {
+            setIdUsuario.value = u.idUsuario || "";
+        }
+
+        const setIdPersona = document.getElementById("crud-id-persona");
+        if (setIdPersona) {
+            setIdPersona.value = u.idPersona || "";
+        }
+        
+        const campos = [
+            { id: "crud-nombre", valor: u.nombre || "" }, { id: "crud-apPat", valor: u.apPat || "" },
+            { id: "crud-apMat", valor: u.apMat || "" }, { id: "crud-ci", valor: u.ci || "" },
+            { id: "crud-email", valor: u.email || "" }, { id: "crud-username", valor: u.nombreUsuario || "" }
+        ];
+        campos.forEach(campo => { const el = document.getElementById(campo.id); if (el) el.value = campo.valor; });
+        
+        const rolSelect = document.getElementById("crud-rol");
+        if (rolSelect) {
+            rolSelect.value = u.idRol || "1";
+        }
+
+        const estadoSelect = document.getElementById("crud-estado");
+        if (estadoSelect) {
+            estadoSelect.value = (u.estado !== false).toString();
+        }
+        
+        if (rowPassword) {
+            rowPassword.style.display = "none";
+        }
+
+        const passwordInput = document.getElementById("crud-password");
+        if (passwordInput) { 
+            passwordInput.value = ""; 
+            passwordInput.required = false; 
+        }
+
+        modal.classList.remove("hidden");
+    } catch (error) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar los datos del usuario.' });
+    }
 }
- 
-async function crearProductoAPI(productoDto) {
+
+if (formCrud) {
+    formCrud.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const idUsuarioEl = document.getElementById("crud-id-usuario");
+        const idPersonaEl = document.getElementById("crud-id-persona");
+        const nombreEl = document.getElementById("crud-nombre");
+        const apPatEl = document.getElementById("crud-apPat");
+        const apMatEl = document.getElementById("crud-apMat");
+        const ciEl = document.getElementById("crud-ci");
+        const emailEl = document.getElementById("crud-email");
+        const usernameEl = document.getElementById("crud-username");
+        const rolEl = document.getElementById("crud-rol");
+        const estadoEl = document.getElementById("crud-estado");
+        const passwordEl = document.getElementById("crud-password");
+
+        if (!idUsuarioEl || !nombreEl || !apPatEl || !ciEl || !emailEl || !usernameEl || !rolEl || !estadoEl) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'El formulario no está completo.' });
+            return;
+        }
+
+        const idUsuario = idUsuarioEl.value;
+        const dto = {
+            idUsuario: idUsuario ? parseInt(idUsuario) : null,
+            idPersona: idPersonaEl && idPersonaEl.value ? parseInt(idPersonaEl.value) : null,
+            nombre: nombreEl.value, apPat: apPatEl.value,
+            apMat: apMatEl && apMatEl.value ? apMatEl.value : "", ci: ciEl.value, email: emailEl.value,
+            nombreUsuario: usernameEl.value, idRol: parseInt(rolEl.value),
+            contrasena: (passwordEl && passwordEl.value) ? passwordEl.value : null,
+            estado: estadoEl.value === "true"
+        };
+
+        const url = idUsuario ? `${API_BASE_URL}/Usuarios/${idUsuario}` : `${API_BASE_URL}/Usuarios`;
+        const method = idUsuario ? "PUT" : "POST";
+
+        try {
+            const response = await fetch(url, { method: method, headers: { ...getAuthHeaders(), "Content-Type": "application/json" }, body: JSON.stringify(dto) });
+            const data = await response.json();
+            if (response.ok) {
+                Swal.fire({ icon: 'success', title: '¡Usuario Guardado!', text: data.mensaje || 'Operación completada.', timer: 2000, showConfirmButton: false });
+                if (modal) {
+                    modal.classList.add("hidden");
+                }
+                if (typeof cargarUsuariosAPI === 'function') {
+                    cargarUsuariosAPI();
+                }
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error al Guardar', text: data.mensaje || "No se pudo completar la operación." });
+            }
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'No se pudo conectar con el servidor.' });
+        }
+    });
+}
+
+async function eliminarUsuario(id) {
+    const result = await Swal.fire({
+        title: '¿Estás seguro?', text: "Esta acción desactivará al usuario del sistema", icon: 'warning',
+        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, desactivar', cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
 
     try {
-
-        const response = await fetch(`${API_BASE_URL}/Productos`, {
-
-            method: "POST",
-
-            headers: getAuthHeaders(),
-
-            body: JSON.stringify(productoDto)
-
-        });
-
+        const response = await fetch(`${API_BASE_URL}/Usuarios/${id}`, { method: "DELETE", headers: getAuthHeaders() });
         if (response.ok) {
-
-            alert("Producto registrado exitosamente.");
-
-            cargarProductosAPI();
-
+            Swal.fire({ icon: 'success', title: 'Usuario Desactivado', text: 'El usuario ha sido desactivado exitosamente.', timer: 2000, showConfirmButton: false });
+            if (typeof cargarUsuariosAPI === 'function') {
+                cargarUsuariosAPI();
+            }
         } else {
-
-            const err = await response.json();
-
-            alert("Error: " + (err.mensaje || "No se pudo registrar"));
-
+            const data = await response.json();
+            Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || "No se pudo desactivar el usuario." });
         }
-
     } catch (error) {
-
-        console.error("Error en POST Producto:", error);
-
+        Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'No se pudo conectar con el servidor.' });
     }
-
 }
- 
-// ==========================================
-
-// 3. MÓDULO COMERCIAL (Clientes y Proveedores)[cite: 4]
-
-// ==========================================
-
-async function cargarComercialAPI() {
-
-    try {
-
-        const [resClientes, resProveedores] = await Promise.all([
-
-            fetch(`${API_BASE_URL}/Clientes`, { headers: getAuthHeaders() }),
-
-            fetch(`${API_BASE_URL}/Proveedores`, { headers: getAuthHeaders() })
-
-        ]);
- 
-        if (resClientes.ok && resProveedores.ok) {
-
-            const clientes = await resClientes.json();
-
-            const proveedores = await resProveedores.json();
-
-            console.log("Clientes:", clientes);
-
-            console.log("Proveedores:", proveedores);
-
-        }
-
-    } catch (error) {
-
-        console.error("Error cargando datos comerciales:", error);
-
-    }
-
-}
- 
-async function crearClienteAPI(crearClienteDto) {
-
-    try {
-
-        const response = await fetch(`${API_BASE_URL}/Clientes`, {
-
-            method: "POST",
-
-            headers: getAuthHeaders(),
-
-            body: JSON.stringify(crearClienteDto)
-
-        });
-
-        if (response.ok) {
-
-            alert("Cliente y persona registrados correctamente.");
-
-            cargarComercialAPI();
-
-        }
-
-    } catch (error) {
-
-        console.error("Error al crear cliente:", error);
-
-    }
-
-}
- 
-// ==========================================
-
-// 4. MÓDULO DE USUARIOS (UsuariosController)[cite: 4]
-
-// ==========================================
-
-async function cargarUsuariosAPI() {
-
-    try {
-
-        const response = await fetch(`${API_BASE_URL}/Usuarios`, { headers: getAuthHeaders() });
-
-        if (response.ok) {
-
-            const usuarios = await response.json();
-
-            console.log("Usuarios cargados:", usuarios);
-
-        }
-
-    } catch (error) {
-
-        console.error("Error al cargar usuarios:", error);
-
-    }
-
-}
- 
-async function crearUsuarioAPI(crearUsuarioDto) {
-
-    try {
-
-        const response = await fetch(`${API_BASE_URL}/Usuarios`, {
-
-            method: "POST",
-
-            headers: getAuthHeaders(),
-
-            body: JSON.stringify(crearUsuarioDto)
-
-        });
-
-        if (response.ok) {
-
-            alert("Usuario creado exitosamente.");
-
-            cargarUsuariosAPI();
-
-        } else {
-
-            const err = await response.json();
-
-            alert("Error: " + (err.mensaje || "No se pudo crear el usuario"));
-
-        }
-
-    } catch (error) {
-
-        console.error("Error en POST Usuario:", error);
-
-    }
-
-}
- 
