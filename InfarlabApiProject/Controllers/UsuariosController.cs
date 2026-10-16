@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InfarlabApiProject.Controllers
 {
-    [Authorize(Roles = "Administrador")] // Restringido solo a administradores
+    [Authorize(Roles = "Administrador")]
     [ApiController]
     [Route("api/[controller]")]
     public class UsuariosController : ControllerBase
@@ -26,15 +26,28 @@ namespace InfarlabApiProject.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsuarios()
         {
-            var usuariosEntidad = await _context.Usuarios
+            var usuarios = await _context.Usuarios
                 .Include(u => u.Persona)
                 .Include(u => u.Rol)
-                .Where(u => u.Estado)
+                .Select(u => new
+                {
+                    u.IdUsuario,
+                    u.IdPersona,
+                    u.NombreUsuario,
+                    u.Email,
+                    u.IdRol,
+                    u.Estado,
+                    u.TwoFactorHabilitado,
+                    nombre = u.Persona != null ? u.Persona.Nombre : "",
+                    apPat = u.Persona != null ? u.Persona.ApPat : "",
+                    apMat = u.Persona != null ? u.Persona.ApMat : "",
+                    ci = u.Persona != null ? u.Persona.CI : "",
+                    personaNombre = u.Persona != null ? $"{u.Persona.Nombre} {u.Persona.ApPat} {u.Persona.ApMat}" : "Sin Persona",
+                    rolNombre = u.Rol != null ? u.Rol.Nombre : "Sin Rol"
+                })
                 .ToListAsync();
 
-            var usuariosDto = _mapper.Map<List<UsuarioDto>>(usuariosEntidad);
-
-            return Ok(usuariosDto);
+            return Ok(usuarios);
         }
 
         // GET: api/Usuarios/5 (Obtener usuario por ID)
@@ -95,31 +108,70 @@ namespace InfarlabApiProject.Controllers
         }
 
         // PUT: api/Usuarios/5 (Actualizar datos de usuario / Rol / Contraseña)
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> ActualizarUsuario(int id, [FromBody] ActualizarUsuarioDto dto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ActualizarUsuario(int id, [FromBody] UsuarioCreaDto dto)
         {
-            var usuarioExistente = await _context.Usuarios.FindAsync(id);
+            // 1. Buscar el usuario existente con su Persona
+            var usuarioExistente = await _context.Usuarios
+                .Include(u => u.Persona)
+                .FirstOrDefaultAsync(u => u.IdUsuario == id);
 
             if (usuarioExistente == null)
-                return NotFound(new { mensaje = "Usuario no encontrado." });
+                return NotFound(new { mensaje = "Usuario no encontrado" });
 
-            // Validar que el nuevo Rol exista
-            var rolExiste = await _context.Roles.AnyAsync(r => r.IdRol == dto.IdRol);
-            if (!rolExiste)
-                return BadRequest(new { mensaje = "El rol especificado no existe." });
-
-            // Mapear campos básicos
-            _mapper.Map(dto, usuarioExistente);
-
-            // Si se envió una nueva contraseña, actualizar el Hash
-            if (!string.IsNullOrWhiteSpace(dto.NuevaContrasena))
+            // 2. Actualizar manualmente los campos de Persona
+            if (usuarioExistente.Persona != null)
             {
-                usuarioExistente.Contrasena = BCrypt.Net.BCrypt.HashPassword(dto.NuevaContrasena);
+                usuarioExistente.Persona.Nombre = dto.Nombre ?? usuarioExistente.Persona.Nombre;
+                usuarioExistente.Persona.ApPat = dto.ApPat ?? usuarioExistente.Persona.ApPat;
+                usuarioExistente.Persona.ApMat = dto.ApMat ?? usuarioExistente.Persona.ApMat;
+                usuarioExistente.Persona.CI = dto.CI ?? usuarioExistente.Persona.CI;
+                usuarioExistente.Persona.Email = dto.Email ?? usuarioExistente.Persona.Email;
             }
 
-            await _context.SaveChangesAsync();
+            // 3. Actualizar manualmente los campos de Usuario
+            usuarioExistente.NombreUsuario = dto.NombreUsuario ?? usuarioExistente.NombreUsuario;
+            usuarioExistente.Email = dto.Email ?? usuarioExistente.Email;
+            usuarioExistente.IdRol = dto.IdRol > 0 ? dto.IdRol : usuarioExistente.IdRol;
+            usuarioExistente.Estado = dto.Estado;
 
-            return NoContent();
+            // 5. Guardar cambios
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest(new { mensaje = "Error al guardar los cambios: " + ex.InnerException?.Message });
+            }
+
+            return Ok(new { mensaje = "Usuario actualizado exitosamente." });
+        }
+
+        //PATCH: Cambiar estado del usuario (Activar/Desactivar)
+        [HttpPatch("{id}/estado")]
+        public async Task<IActionResult> CambiarEstadoUsuario(int id)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios.FindAsync(id);
+                if (usuario == null)
+                    return NotFound(new { mensaje = "Usuario no encontrado" });
+
+                // Invertir el estado actual
+                usuario.Estado = !usuario.Estado;
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    mensaje = $"Usuario {(usuario.Estado ? "activado" : "desactivado")} exitosamente.",
+                    nuevoEstado = usuario.Estado
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error interno del servidor: " + ex.Message });
+            }
         }
 
         // DELETE: api/Usuarios/5 (Desactivación lógica)

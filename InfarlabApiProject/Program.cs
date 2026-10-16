@@ -44,6 +44,9 @@ namespace InfarlabApiProject
 
 
             builder.Services.AddControllers();
+
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
             builder.Services.AddEndpointsApiExplorer();
 
             
@@ -66,6 +69,18 @@ namespace InfarlabApiProject
             });
 
             builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
+
+            //CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.SetIsOriginAllowed(origin => true)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
+            });
 
             var app = builder.Build();
 
@@ -91,6 +106,8 @@ namespace InfarlabApiProject
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
             app.UseAuthorization();

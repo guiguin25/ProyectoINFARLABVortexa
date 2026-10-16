@@ -229,6 +229,44 @@ namespace InfarlabSis.Infrastructure.Migrations
                     b.ToTable("DetalleVentas");
                 });
 
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.DetalleVentaHistorial", b =>
+                {
+                    b.Property<int>("IdDetalleHistorial")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdDetalleHistorial"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdHistorial")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdProducto")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NombreProducto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("IdDetalleHistorial");
+
+                    b.ToTable("DetalleVentaHistorials");
+                });
+
             modelBuilder.Entity("InfarlabSis.Domain.Entities.Devolucion", b =>
                 {
                     b.Property<int>("IdDevolucion")
@@ -474,6 +512,9 @@ namespace InfarlabSis.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdUsuario"));
 
+                    b.Property<string>("ClaveSecreta2FA")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Contrasena")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -486,6 +527,9 @@ namespace InfarlabSis.Infrastructure.Migrations
 
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ExpiracionToken")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
@@ -500,6 +544,12 @@ namespace InfarlabSis.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TokenRecuperacion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorHabilitado")
+                        .HasColumnType("bit");
 
                     b.HasKey("IdUsuario");
 
@@ -546,6 +596,47 @@ namespace InfarlabSis.Infrastructure.Migrations
                     b.HasIndex("IdUsuario");
 
                     b.ToTable("Ventas");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.VentaHistorial", b =>
+                {
+                    b.Property<int>("IdHistorial")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdHistorial"));
+
+                    b.Property<string>("DatosAntes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DatosDespues")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FechaModificacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdUsuarioModifico")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdVenta")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TipoCambio")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("IdHistorial");
+
+                    b.HasIndex("IdUsuarioModifico");
+
+                    b.ToTable("VentaHistorials");
                 });
 
             modelBuilder.Entity("InfarlabSis.Domain.Entities.AreaCalidad", b =>
@@ -746,6 +837,17 @@ namespace InfarlabSis.Infrastructure.Migrations
                     b.Navigation("Cliente");
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("InfarlabSis.Domain.Entities.VentaHistorial", b =>
+                {
+                    b.HasOne("InfarlabSis.Domain.Entities.Usuario", "UsuarioModifico")
+                        .WithMany()
+                        .HasForeignKey("IdUsuarioModifico")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UsuarioModifico");
                 });
 
             modelBuilder.Entity("InfarlabSis.Domain.Entities.Categoria", b =>

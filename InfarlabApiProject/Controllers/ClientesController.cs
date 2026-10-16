@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using InfarlabSis.Application.DTOs.Actores;
+﻿using InfarlabSis.Application.DTOs.Actores;
 using InfarlabSis.Domain.Entities;
 using InfarlabSis.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
@@ -14,92 +13,99 @@ namespace InfarlabApiProject.Controllers
     public class ClientesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public ClientesController(ApplicationDbContext context, IMapper mapper)
+        public ClientesController(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        // GET: api/Clientes
         [HttpGet]
         public async Task<IActionResult> GetClientes()
         {
-            var clientesEntidad = await _context.Clientes
+            var clientes = await _context.Clientes
                 .Include(c => c.Persona)
+                .Select(c => new
+                {
+                    idCliente = c.IdCliente,
+                    idPersona = c.IdPersona,
+                    nombre = c.Persona != null
+                        ? c.Persona.Nombre + " " + c.Persona.ApPat + " " + c.Persona.ApMat
+                        : "Sin Nombre",
+                    telefono = c.Persona != null && c.Persona.Telefono != null
+                        ? c.Persona.Telefono
+                        : "Sin Teléfono",
+                    email = c.Persona != null && c.Persona.Email != null
+                        ? c.Persona.Email
+                        : "Sin Email",
+                    direccion = c.Persona != null && c.Persona.Direccion != null
+                        ? c.Persona.Direccion
+                        : "Sin Dirección"
+                })
                 .ToListAsync();
 
-            var clientesDto = _mapper.Map<List<ClienteDto>>(clientesEntidad);
-
-            return Ok(clientesDto);
+            return Ok(clientes);
         }
 
-        // GET: api/Clientes/5
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetCliente(int id)
         {
-            var clienteEntidad = await _context.Clientes
+            var cliente = await _context.Clientes
                 .Include(c => c.Persona)
                 .FirstOrDefaultAsync(c => c.IdCliente == id);
 
-            if (clienteEntidad == null)
+            if (cliente == null)
                 return NotFound(new { mensaje = "Cliente no encontrado." });
 
-            var clienteDto = _mapper.Map<ClienteDto>(clienteEntidad);
-
-            return Ok(clienteDto);
+            return Ok(new
+            {
+                idCliente = cliente.IdCliente,
+                idPersona = cliente.IdPersona,
+                nombre = cliente.Persona != null
+                    ? cliente.Persona.Nombre + " " + cliente.Persona.ApPat + " " + cliente.Persona.ApMat
+                    : "Sin Nombre",
+                telefono = cliente.Persona?.Telefono ?? "Sin Teléfono",
+                email = cliente.Persona?.Email ?? "Sin Email",
+                direccion = cliente.Persona?.Direccion ?? "Sin Dirección"
+            });
         }
 
-        // POST: api/Clientes
         [HttpPost]
         public async Task<IActionResult> CrearCliente([FromBody] ClienteDto dto)
         {
-            // Validar que la persona asociada exista en la base de datos
             var personaExiste = await _context.Personas.AnyAsync(p => p.IdPersona == dto.IdPersona);
             if (!personaExiste)
                 return BadRequest(new { mensaje = "La persona especificada no existe." });
 
-            var nuevoCliente = _mapper.Map<Cliente>(dto);
-
+            var nuevoCliente = new Cliente { IdPersona = dto.IdPersona };
             _context.Clientes.Add(nuevoCliente);
             await _context.SaveChangesAsync();
 
-            var resultadoDto = _mapper.Map<ClienteDto>(nuevoCliente);
-
-            return CreatedAtAction(nameof(GetCliente), new { id = nuevoCliente.IdCliente }, resultadoDto);
+            return Ok(new { mensaje = "Cliente creado exitosamente.", idCliente = nuevoCliente.IdCliente });
         }
 
-        // PUT: api/Clientes/5
         [HttpPut("{id:int}")]
         public async Task<IActionResult> ActualizarCliente(int id, [FromBody] ClienteDto dto)
         {
             var clienteExistente = await _context.Clientes.FindAsync(id);
-
             if (clienteExistente == null)
                 return NotFound(new { mensaje = "Cliente no encontrado." });
 
-            // Validar si la nueva Persona existe
             if (clienteExistente.IdPersona != dto.IdPersona)
             {
                 var personaExiste = await _context.Personas.AnyAsync(p => p.IdPersona == dto.IdPersona);
                 if (!personaExiste)
                     return BadRequest(new { mensaje = "La persona especificada no existe." });
+                clienteExistente.IdPersona = dto.IdPersona;
             }
 
-            _mapper.Map(dto, clienteExistente);
-
             await _context.SaveChangesAsync();
-
-            return NoContent();
+            return Ok(new { mensaje = "Cliente actualizado exitosamente." });
         }
 
-        // DELETE: api/Clientes/5
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> EliminarCliente(int id)
         {
             var cliente = await _context.Clientes.FindAsync(id);
-
             if (cliente == null)
                 return NotFound(new { mensaje = "Cliente no encontrado." });
 

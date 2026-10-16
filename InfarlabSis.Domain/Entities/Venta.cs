@@ -45,5 +45,10 @@ namespace InfarlabSis.Domain.Entities
 
         // Relación: Una venta puede tener una o más Devoluciones
         public List<Devolucion> Devoluciones { get; set; }
+
+        public Venta()
+        {
+            DetallesVenta = new List<DetalleVenta>();
+        }
     }
 }

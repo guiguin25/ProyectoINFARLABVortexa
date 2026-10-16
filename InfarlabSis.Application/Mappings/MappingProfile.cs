@@ -46,6 +46,11 @@ namespace InfarlabSis.Application.Mappings
 
             CreateMap<CrearUsuarioDto, Usuario>();
 
+            CreateMap<UsuarioCreaDto, Usuario>()
+            .ForMember(dest => dest.IdUsuario, opt => opt.Ignore())
+            .ForMember(dest => dest.Persona, opt => opt.Ignore())
+            .ForMember(dest => dest.FechaCreacion, opt => opt.Ignore());
+
             // Ventas
             CreateMap<Venta, VentaDto>();
             CreateMap<VentaDto, Venta>()
