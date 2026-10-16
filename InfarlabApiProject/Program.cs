@@ -17,12 +17,14 @@ namespace InfarlabApiProject
         {
             var builder = WebApplication.CreateBuilder(args);
 
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
             builder.Services.AddScoped<IAuthService, AuthService>();
 
-            // JWT
+            // Configuración JWT
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["Secret"]!;
             var keyBytes = Encoding.UTF8.GetBytes(secretKey);
@@ -42,17 +44,22 @@ namespace InfarlabApiProject
                 };
             });
 
-
             builder.Services.AddControllers();
 
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddEndpointsApiExplorer();
 
-            
+            // Configuración de Swagger para Swashbuckle 10.x / OpenAPI v2.0+
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Infarlab API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Infarlab API",
+                    Version = "v1"
+                });
+
+                // Esquema de seguridad tipo HTTP Bearer
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "Autenticación JWT. Pega únicamente tu token JWT aquí (sin la palabra Bearer).",
@@ -62,13 +69,34 @@ namespace InfarlabApiProject
                     Scheme = "bearer",
                     BearerFormat = "JWT"
                 });
+
+
                 c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
                 {
-                    { new OpenApiSecuritySchemeReference("Bearer", doc), new List<string>() }
+                    {
+                        new OpenApiSecuritySchemeReference("Bearer", doc),
+                        new List<string>()
+                    }
                 });
             });
 
-            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
+            // Registro de AutoMapper
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<MappingProfile>();
+            });
+            // ==========================================
+            // NUEVO: CONFIGURACIÓN CORS PARA EL FRONTEND
+            // ==========================================
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("PermitirFrontend", policy =>
+                {
+                    policy.AllowAnyOrigin()    // Permite que tu web local se conecte sin importar el puerto
+                          .AllowAnyHeader()    // Permite enviar headers como Authorization para el JWT
+                          .AllowAnyMethod();   // Permite que funcionen los métodos GET, POST, PUT, DELETE
+                });
+            });
 
             //CORS
             builder.Services.AddCors(options =>
@@ -84,21 +112,30 @@ namespace InfarlabApiProject
 
             var app = builder.Build();
 
-            // Seeder
+            //SEEDERS -- FAKERS
+
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                Console.WriteLine($" Base de datos: {context.Database.GetConnectionString()}");
+
                 try
                 {
                     await DbSeed.SeedAsync(context);
-                    Console.WriteLine("Seeder ejecutado correctamente.");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error en seeder: {ex.Message}");
+                    Console.WriteLine($"📝 Mensaje: {ex.Message}");
+                    Console.WriteLine($"🔍 InnerException: {ex.InnerException?.Message}");
+                    Console.WriteLine($" StackTrace: {ex.StackTrace}");
                 }
             }
 
+
+            // ==========================================
+            // Configuración del Pipeline HTTP
+            // ==========================================
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -106,9 +143,17 @@ namespace InfarlabApiProject
             }
 
             app.UseHttpsRedirection();
+<<<<<<< HEAD
 
             app.UseCors("AllowFrontend");
 
+=======
+            // ==========================================
+            // NUEVO: ACTIVAR CORS
+            // IMPORTANTE: Debe ir EXACTAMENTE aquí (después de HttpsRedirection y antes de Authentication)
+            // ==========================================
+            app.UseCors("PermitirFrontend");
+>>>>>>> 48bd47a670390ab061b33cfa056ff059e88ac67f
             app.UseAuthentication();
             app.UseAuthorization();
 

@@ -1,20 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace InfarlabSis.Application.DTOs.Actores
 {
+    // 1. DTO para lectura (GET)
     public class ClienteDto
     {
         public int IdCliente { get; set; }
-
-        [Required(ErrorMessage = "El ID de la persona vinculada es obligatorio.")]
         public int IdPersona { get; set; }
+        public string NombreCompleto { get; set; } = string.Empty;
+        public string? Ci { get; set; }
+        public string? Telefono { get; set; }
+    }
 
-        // Propiedades informativas de lectura (para las consultas GET)
-        public string? NombreCompleto { get; set; }
-        public string? CI { get; set; }
-        public string? Email { get; set; }
+    // 2. DTO para creación (POST) - Solo pide los datos personales
+    public class CrearClienteDto
+    {
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(100)]
+        public string Nombre { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El primer apellido es obligatorio.")]
+        [StringLength(100)]
+        public string ApPat { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string? ApMat { get; set; }
+
+        [StringLength(20)]
+        public string? Ci { get; set; }
+
+        [StringLength(20)]
+        public string? Telefono { get; set; }
+    }
+
+    // 3. DTO para actualización (PUT)
+    public class ActualizarClienteDto
+    {
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(100)]
+        public string Nombre { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El primer apellido es obligatorio.")]
+        [StringLength(100)]
+        public string ApPat { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string? ApMat { get; set; }
+
+        [StringLength(20)]
+        public string? Ci { get; set; }
+
+        [StringLength(20)]
+        public string? Telefono { get; set; }
     }
 }
