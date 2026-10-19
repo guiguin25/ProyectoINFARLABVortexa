@@ -7,12 +7,15 @@ namespace InfarlabSis.Application.DTOs.Actores
     {
         public int IdProveedor { get; set; }
         public string Nombre { get; set; } = string.Empty; // Nombre de la empresa / proveedor
+        public string? Documento { get; set; }
+        public string? Direccion { get; set; }
+        public string? Telefono { get; set; }
+        public string? Email { get; set; }
 
-        // Datos de la persona de contacto (si tiene una enlazada)
-        public int? IdPersona { get; set; }
-        public string? NombrePersonaContacto { get; set; }
-        public string? CiPersonaContacto { get; set; }
-        public string? TelefonoPersonaContacto { get; set; }
+        // Datos de contacto interno del proveedor
+        public string? ContactoNombre { get; set; }
+        public string? ContactoTelefono { get; set; }
+        public string? ContactoEmail { get; set; }
     }
 
     // 2. DTO para creación (POST)
@@ -21,22 +24,27 @@ namespace InfarlabSis.Application.DTOs.Actores
         [Required(ErrorMessage = "El nombre o razón social del proveedor es obligatorio.")]
         [StringLength(150)]
         public string Nombre { get; set; } = string.Empty;
+        [StringLength(20)]
+        public string? Documento { get; set; }
 
-        // Datos opcionales para crear la Persona de contacto
-        [StringLength(100)]
-        public string? NombreContacto { get; set; }
-
-        [StringLength(100)]
-        public string? ApPatContacto { get; set; }
-
-        [StringLength(100)]
-        public string? ApMatContacto { get; set; }
+        [StringLength(200)]
+        public string? Direccion { get; set; }
 
         [StringLength(20)]
-        public string? CiContacto { get; set; }
+        public string? Telefono { get; set; }
+
+        [EmailAddress]
+        public string? Email { get; set; }
+
+        // Datos de contacto opcionales
+        [StringLength(150)]
+        public string? ContactoNombre { get; set; }
 
         [StringLength(20)]
-        public string? TelefonoContacto { get; set; }
+        public string? ContactoTelefono { get; set; }
+
+        [EmailAddress]
+        public string? ContactoEmail { get; set; }
     }
 
     // 3. DTO para actualización (PUT)
@@ -45,21 +53,26 @@ namespace InfarlabSis.Application.DTOs.Actores
         [Required(ErrorMessage = "El nombre o razón social del proveedor es obligatorio.")]
         [StringLength(150)]
         public string Nombre { get; set; } = string.Empty;
+        [StringLength(20)]
+        public string? Documento { get; set; }
 
-        // Datos opcionales para actualizar la Persona de contacto
-        [StringLength(100)]
-        public string? NombreContacto { get; set; }
-
-        [StringLength(100)]
-        public string? ApPatContacto { get; set; }
-
-        [StringLength(100)]
-        public string? ApMatContacto { get; set; }
+        [StringLength(200)]
+        public string? Direccion { get; set; }
 
         [StringLength(20)]
-        public string? CiContacto { get; set; }
+        public string? Telefono { get; set; }
+
+        [EmailAddress]
+        public string? Email { get; set; }
+
+        // Datos de contacto opcionales
+        [StringLength(150)]
+        public string? ContactoNombre { get; set; }
 
         [StringLength(20)]
-        public string? TelefonoContacto { get; set; }
+        public string? ContactoTelefono { get; set; }
+
+        [EmailAddress]
+        public string? ContactoEmail { get; set; }
     }
 }

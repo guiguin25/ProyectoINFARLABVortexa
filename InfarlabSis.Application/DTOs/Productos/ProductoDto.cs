@@ -13,6 +13,12 @@ namespace InfarlabSis.Application.DTOs.Productos
         [StringLength(150)]
         public string Nombre { get; set; } = string.Empty;
 
+        [StringLength(150)]
+        public string? NombreGenerico { get; set; }
+
+        [StringLength(50)]
+        public string? Codigo { get; set; }
+
         [StringLength(500)]
         public string? Descripcion { get; set; }
 
@@ -21,10 +27,16 @@ namespace InfarlabSis.Application.DTOs.Productos
 
         public int StockActual { get; set; }
 
+        public decimal StockMinimo { get; set; }
+
         [Required(ErrorMessage = "La categoría es obligatoria.")]
         public int IdCategoria { get; set; }
 
         public int? IdProveedor { get; set; }
+
+        public int? IdUnidad { get; set; }
+
+        public string? RegistroSanitario { get; set; }
 
         public bool Estado { get; set; } = true;
 

@@ -99,23 +99,24 @@ namespace InfarlabSis.Infrastructure.Persistence
             modelBuilder.Entity<Cliente>(entity =>
             {
                 entity.HasKey(e => e.IdCliente);
-
-                entity.HasOne(c => c.Persona)
-                      .WithMany()
-                      .HasForeignKey(c => c.IdPersona)
-                      .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.RazonSocial).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Nit).HasMaxLength(50);
+                entity.Property(e => e.TipoCliente).HasMaxLength(50);
+                entity.Property(e => e.Direccion).HasMaxLength(200);
+                entity.Property(e => e.Telefono).HasMaxLength(20);
             });
 
             modelBuilder.Entity<Proveedor>(entity =>
             {
                 entity.HasKey(e => e.IdProveedor);
                 entity.Property(e => e.Nombre).HasMaxLength(150).IsRequired();
-
-                entity.HasOne(pr => pr.Persona)
-                      .WithMany()
-                      .HasForeignKey(pr => pr.IdPersona)
-                      .IsRequired(false)
-                      .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.Documento).HasMaxLength(50);
+                entity.Property(e => e.Direccion).HasMaxLength(200);
+                entity.Property(e => e.Telefono).HasMaxLength(20);
+                entity.Property(e => e.Email).HasMaxLength(100);
+                entity.Property(e => e.ContactoNombre).HasMaxLength(150);
+                entity.Property(e => e.ContactoTelefono).HasMaxLength(20);
+                entity.Property(e => e.ContactoEmail).HasMaxLength(100);
             });
 
             // ------------------------------------------
@@ -140,8 +141,12 @@ namespace InfarlabSis.Infrastructure.Persistence
             {
                 entity.HasKey(e => e.IdProducto);
                 entity.Property(e => e.Nombre).HasMaxLength(150).IsRequired();
+                entity.Property(e => e.NombreGenerico).HasMaxLength(150);
+                entity.Property(e => e.Codigo).HasMaxLength(50);
+                entity.HasIndex(e => e.Codigo).IsUnique();
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
                 entity.Property(e => e.PrecioVenta).HasPrecision(10, 2);
+                entity.Property(e => e.StockMinimo).HasPrecision(10, 2);
 
                 entity.HasOne(p => p.Categoria)
                       .WithMany(c => c.Productos)

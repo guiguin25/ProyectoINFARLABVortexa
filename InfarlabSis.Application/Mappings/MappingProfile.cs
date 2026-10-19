@@ -21,19 +21,9 @@ namespace InfarlabSis.Application.Mappings
             CreateMap<Persona, PersonaDto>().ReverseMap();
 
             // Actores
-            CreateMap<Cliente, ClienteDto>()
-                .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(src =>
-                    src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat} {src.Persona.ApMat}".Trim() : string.Empty))
-                .ForMember(dest => dest.Ci, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.CI : null))
-                .ForMember(dest => dest.Telefono, opt => opt.MapFrom(src => src.Persona != null ? src.Persona.Telefono : null));
+            CreateMap<Cliente, ClienteDto>().ReverseMap();
 
-            CreateMap<Proveedor, ProveedorDto>()
-                .ForMember(dest => dest.NombrePersonaContacto, opt => opt.MapFrom(src =>
-                    src.Persona != null ? $"{src.Persona.Nombre} {src.Persona.ApPat} {src.Persona.ApMat}".Trim() : null))
-                .ForMember(dest => dest.CiPersonaContacto, opt => opt.MapFrom(src =>
-                    src.Persona != null ? src.Persona.CI : null))
-                .ForMember(dest => dest.TelefonoPersonaContacto, opt => opt.MapFrom(src =>
-                    src.Persona != null ? src.Persona.Telefono : null));
+            CreateMap<Proveedor, ProveedorDto>().ReverseMap();
 
 
             // Productos y Almacenes
@@ -42,6 +32,11 @@ namespace InfarlabSis.Application.Mappings
             CreateMap<Producto, ProductoDto>()
                 .ForMember(dest => dest.NombreCategoria, opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : string.Empty))
                 .ForMember(dest => dest.NombreProveedor, opt => opt.MapFrom(src => src.Proveedor != null ? src.Proveedor.Nombre : null))
+                .ForMember(dest => dest.NombreGenerico, opt => opt.MapFrom(src => src.NombreGenerico))
+                .ForMember(dest => dest.Codigo, opt => opt.MapFrom(src => src.Codigo))
+                .ForMember(dest => dest.StockMinimo, opt => opt.MapFrom(src => src.StockMinimo))
+                .ForMember(dest => dest.IdUnidad, opt => opt.MapFrom(src => src.IdUnidad))
+                .ForMember(dest => dest.RegistroSanitario, opt => opt.MapFrom(src => src.RegistroSanitario))
                 .ReverseMap();
 
             // Usuarios

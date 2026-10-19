@@ -6,9 +6,10 @@ namespace InfarlabSis.Application.DTOs.Actores
     public class ClienteDto
     {
         public int IdCliente { get; set; }
-        public int IdPersona { get; set; }
-        public string NombreCompleto { get; set; } = string.Empty;
-        public string? Ci { get; set; }
+        public string RazonSocial { get; set; } = string.Empty;
+        public string? Nit { get; set; }
+        public string? TipoCliente { get; set; }
+        public string? Direccion { get; set; }
         public string? Telefono { get; set; }
     }
 
@@ -17,17 +18,16 @@ namespace InfarlabSis.Application.DTOs.Actores
     {
         [Required(ErrorMessage = "El nombre es obligatorio.")]
         [StringLength(100)]
-        public string Nombre { get; set; } = string.Empty;
+        public string RazonSocial { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El primer apellido es obligatorio.")]
-        [StringLength(100)]
-        public string ApPat { get; set; } = string.Empty;
+        [StringLength(50)]
+        public string? Nit { get; set; }
 
-        [StringLength(100)]
-        public string? ApMat { get; set; }
+        [StringLength(50)]
+        public string? TipoCliente { get; set; }
 
-        [StringLength(20)]
-        public string? Ci { get; set; }
+        [StringLength(200)]
+        public string? Direccion { get; set; }
 
         [StringLength(20)]
         public string? Telefono { get; set; }
@@ -38,17 +38,16 @@ namespace InfarlabSis.Application.DTOs.Actores
     {
         [Required(ErrorMessage = "El nombre es obligatorio.")]
         [StringLength(100)]
-        public string Nombre { get; set; } = string.Empty;
+        public string RazonSocial { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El primer apellido es obligatorio.")]
-        [StringLength(100)]
-        public string ApPat { get; set; } = string.Empty;
+        [StringLength(50)]
+        public string? Nit { get; set; }
 
-        [StringLength(100)]
-        public string? ApMat { get; set; }
+        [StringLength(50)]
+        public string? TipoCliente { get; set; }
 
-        [StringLength(20)]
-        public string? Ci { get; set; }
+        [StringLength(200)]
+        public string? Direccion { get; set; }
 
         [StringLength(20)]
         public string? Telefono { get; set; }

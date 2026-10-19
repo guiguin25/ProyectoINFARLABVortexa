@@ -7,12 +7,18 @@ namespace InfarlabSis.Domain.Entities
     public class Producto
     {
         public int IdProducto { get; set; }
-        public string Nombre { get; set; } = string.Empty;
+        // Nuevo/extendido esquema (mantener compatibilidad con código existente)
+        public string Nombre { get; set; } = string.Empty; // nombre para compatibilidad
+        public string? NombreGenerico { get; set; }
+        public string? Codigo { get; set; } // código único del ítem
         public string? Descripcion { get; set; }
         public decimal PrecioVenta { get; set; }
         public int StockActual { get; set; }
+        public decimal StockMinimo { get; set; }
         public int IdCategoria { get; set; }
         public int? IdProveedor { get; set; }
+        public int? IdUnidad { get; set; } // FK a unidad_medida (no model existente actualmente)
+        public string? RegistroSanitario { get; set; }
         public bool Estado { get; set; } = true;
 
         // Propiedades de navegación

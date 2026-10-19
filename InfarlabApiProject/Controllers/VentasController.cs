@@ -28,16 +28,13 @@ namespace InfarlabApiProject.Controllers
                 //.Where(v => v.Estado)
                 .Include(v => v.Usuario)
                 .Include(v => v.Cliente)
-                    .ThenInclude(c => c.Persona)
                 .OrderByDescending(v => v.FechaVenta)
                 .Select(v => new
                 {
                     idVenta = v.IdVenta,
                     idCliente = v.IdCliente,
                     idUsuario = v.IdUsuario,
-                    nombreCliente = v.Cliente != null && v.Cliente.Persona != null
-                        ? $"{v.Cliente.Persona.Nombre} {v.Cliente.Persona.ApPat} {v.Cliente.Persona.ApMat}"
-                        : "Cliente Desconocido",
+                    nombreCliente = v.Cliente != null ? v.Cliente.RazonSocial : "Cliente Desconocido",
                     nombreUsuario = v.Usuario != null ? v.Usuario.NombreUsuario : "Sistema",
                     fechaVenta = v.FechaVenta,
                     tipoPago = v.TipoPago,
@@ -58,7 +55,6 @@ namespace InfarlabApiProject.Controllers
                     .ThenInclude(d => d.Producto)
                 .Include(v => v.Usuario)
                 .Include(v => v.Cliente)
-                    .ThenInclude(c => c.Persona)
                 .FirstOrDefaultAsync(v => v.IdVenta == id);
 
             if (venta == null)
@@ -69,9 +65,7 @@ namespace InfarlabApiProject.Controllers
                 idVenta = venta.IdVenta,
                 idCliente = venta.IdCliente,
                 idUsuario = venta.IdUsuario,
-                nombreCliente = venta.Cliente?.Persona != null
-                    ? $"{venta.Cliente.Persona.Nombre} {venta.Cliente.Persona.ApPat} {venta.Cliente.Persona.ApMat}"
-                    : "Cliente Desconocido",
+                nombreCliente = venta.Cliente != null ? venta.Cliente.RazonSocial : "Cliente Desconocido",
                 fechaVenta = venta.FechaVenta,
                 tipoPago = venta.TipoPago,
                 total = venta.Total,

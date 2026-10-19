@@ -100,23 +100,40 @@ namespace InfarlabSis.Infrastructure.Seeders
             {
                 var faker = new Faker("es");
 
-                await context.Proveedores.AddAsync(new Proveedor { IdPersona = null, Nombre = "Laboratorio Pfizer Bolivia" });
+                await context.Proveedores.AddAsync(new Proveedor { Nombre = "Laboratorio Pfizer Bolivia", Documento = null, Direccion = "", Telefono = "", Email = null });
                 for (int i = 0; i < 5; i++)
                 {
-                    await context.Proveedores.AddAsync(new Proveedor { IdPersona = null, Nombre = faker.Company.CompanyName() });
+                    await context.Proveedores.AddAsync(new Proveedor
+                    {
+                        Nombre = faker.Company.CompanyName(),
+                        Documento = faker.Random.Replace("#########"),
+                        Direccion = faker.Address.FullAddress(),
+                        Telefono = faker.Phone.PhoneNumber("########"),
+                        Email = faker.Internet.Email(),
+                        ContactoNombre = faker.Name.FullName(),
+                        ContactoTelefono = faker.Phone.PhoneNumber("########"),
+                        ContactoEmail = faker.Internet.Email()
+                    });
                 }
                 await context.SaveChangesAsync();
             }
 
-            //CLIENETES
+            //CLIENTES
             if (!await context.Clientes.AnyAsync())
             {
                 var faker = new Faker("es");
-                var personasIds = await context.Personas.Where(p => p.Email != "admin@infarlab.com").Select(p => p.IdPersona).ToListAsync();
+                var tipos = new[] { "Hospital", "Caja de Salud", "Clínica", "Farmacia", "Laboratorio" };
 
                 for (int i = 0; i < 10; i++)
                 {
-                    await context.Clientes.AddAsync(new Cliente { IdPersona = faker.PickRandom(personasIds) });
+                    await context.Clientes.AddAsync(new Cliente
+                    {
+                        RazonSocial = faker.Company.CompanyName(),
+                        Nit = faker.Random.Replace("#########"),
+                        TipoCliente = faker.PickRandom(tipos),
+                        Direccion = faker.Address.FullAddress(),
+                        Telefono = faker.Phone.PhoneNumber("########")
+                    });
                 }
                 await context.SaveChangesAsync();
             }

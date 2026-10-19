@@ -23,23 +23,14 @@ namespace InfarlabApiProject.Controllers
         public async Task<IActionResult> GetClientes()
         {
             var clientes = await _context.Clientes
-                .Include(c => c.Persona)
                 .Select(c => new
                 {
                     idCliente = c.IdCliente,
-                    idPersona = c.IdPersona,
-                    nombre = c.Persona != null
-                        ? c.Persona.Nombre + " " + c.Persona.ApPat + " " + c.Persona.ApMat
-                        : "Sin Nombre",
-                    telefono = c.Persona != null && c.Persona.Telefono != null
-                        ? c.Persona.Telefono
-                        : "Sin Teléfono",
-                    email = c.Persona != null && c.Persona.Email != null
-                        ? c.Persona.Email
-                        : "Sin Email",
-                    direccion = c.Persona != null && c.Persona.Direccion != null
-                        ? c.Persona.Direccion
-                        : "Sin Dirección"
+                    razonSocial = c.RazonSocial,
+                    nit = c.Nit ?? string.Empty,
+                    tipoCliente = c.TipoCliente ?? string.Empty,
+                    telefono = c.Telefono ?? "Sin Teléfono",
+                    direccion = c.Direccion ?? "Sin Dirección"
                 })
                 .ToListAsync();
 
@@ -49,23 +40,18 @@ namespace InfarlabApiProject.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetCliente(int id)
         {
-            var cliente = await _context.Clientes
-                .Include(c => c.Persona)
-                .FirstOrDefaultAsync(c => c.IdCliente == id);
-
+            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdCliente == id);
             if (cliente == null)
                 return NotFound(new { mensaje = "Cliente no encontrado." });
 
             return Ok(new
             {
                 idCliente = cliente.IdCliente,
-                idPersona = cliente.IdPersona,
-                nombre = cliente.Persona != null
-                    ? cliente.Persona.Nombre + " " + cliente.Persona.ApPat + " " + cliente.Persona.ApMat
-                    : "Sin Nombre",
-                telefono = cliente.Persona?.Telefono ?? "Sin Teléfono",
-                email = cliente.Persona?.Email ?? "Sin Email",
-                direccion = cliente.Persona?.Direccion ?? "Sin Dirección"
+                razonSocial = cliente.RazonSocial,
+                nit = cliente.Nit ?? string.Empty,
+                tipoCliente = cliente.TipoCliente ?? string.Empty,
+                telefono = cliente.Telefono ?? "Sin Teléfono",
+                direccion = cliente.Direccion ?? "Sin Dirección"
             });
         }
 
@@ -73,67 +59,34 @@ namespace InfarlabApiProject.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearCliente([FromBody] CrearClienteDto dto)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                int idPersona;
-
-                // LÓGICA 1: Si el DTO trae un IdPersona válido, lo vinculamos (Código original)
-                if (dto.IdPersona > 0)
-                {
-                    var personaExiste = await _context.Personas.AnyAsync(p => p.IdPersona == dto.IdPersona);
-                    if (!personaExiste)
-                        return BadRequest(new { mensaje = "La persona especificada no existe." });
-
-                    idPersona = dto.IdPersona;
-                }
-                else
-                {
-                    
-                    var persona = new Persona
-                    {
-                        Nombre = dto.Nombre,
-                        ApPat = dto.ApPat,
-                        ApMat = dto.ApMat,
-                        CI = dto.Ci,
-                        Telefono = dto.Telefono,
-                        Estado = true
-                    };
-
-                    _context.Personas.Add(persona);
-                    await _context.SaveChangesAsync();
-                    idPersona = persona.IdPersona;
-                }
-
-                
                 var cliente = new Cliente
                 {
-                    IdPersona = idPersona
+                    RazonSocial = dto.RazonSocial,
+                    Nit = dto.Nit,
+                    TipoCliente = dto.TipoCliente,
+                    Direccion = dto.Direccion,
+                    Telefono = dto.Telefono
                 };
 
                 _context.Clientes.Add(cliente);
                 await _context.SaveChangesAsync();
 
-                await transaction.CommitAsync();
-
-                
-                await _context.Entry(cliente).Reference(c => c.Persona).LoadAsync();
-
                 var resultado = new
                 {
                     idCliente = cliente.IdCliente,
-                    idPersona = cliente.IdPersona,
-                    nombre = cliente.Persona != null ? $"{cliente.Persona.Nombre} {cliente.Persona.ApPat} {cliente.Persona.ApMat}" : "Sin Nombre",
-                    telefono = cliente.Persona?.Telefono ?? "Sin Teléfono",
-                    email = cliente.Persona?.Email ?? "Sin Email",
-                    direccion = cliente.Persona?.Direccion ?? "Sin Dirección"
+                    razonSocial = cliente.RazonSocial,
+                    nit = cliente.Nit ?? string.Empty,
+                    tipoCliente = cliente.TipoCliente ?? string.Empty,
+                    telefono = cliente.Telefono ?? "Sin Teléfono",
+                    direccion = cliente.Direccion ?? "Sin Dirección"
                 };
 
                 return CreatedAtAction(nameof(GetCliente), new { id = cliente.IdCliente }, resultado);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 return StatusCode(500, new { mensaje = "Error al registrar el cliente.", detalle = ex.Message });
             }
         }
@@ -142,32 +95,15 @@ namespace InfarlabApiProject.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> ActualizarCliente(int id, [FromBody] ActualizarClienteDto dto)
         {
-            var clienteExistente = await _context.Clientes
-                .Include(c => c.Persona)
-                .FirstOrDefaultAsync(c => c.IdCliente == id);
-
+            var clienteExistente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdCliente == id);
             if (clienteExistente == null)
                 return NotFound(new { mensaje = "Cliente no encontrado." });
 
-            
-            if (clienteExistente.Persona != null)
-            {
-                clienteExistente.Persona.Nombre = dto.Nombre;
-                clienteExistente.Persona.ApPat = dto.ApPat;
-                clienteExistente.Persona.ApMat = dto.ApMat;
-                clienteExistente.Persona.CI = dto.Ci;
-                clienteExistente.Persona.Telefono = dto.Telefono;
-            }
-
-
-            if (dto.IdPersona > 0 && clienteExistente.IdPersona != dto.IdPersona)
-            {
-                var personaExiste = await _context.Personas.AnyAsync(p => p.IdPersona == dto.IdPersona);
-                if (!personaExiste)
-                    return BadRequest(new { mensaje = "La persona especificada no existe." });
-
-                clienteExistente.IdPersona = dto.IdPersona;
-            }
+            clienteExistente.RazonSocial = dto.RazonSocial;
+            clienteExistente.Nit = dto.Nit;
+            clienteExistente.TipoCliente = dto.TipoCliente;
+            clienteExistente.Direccion = dto.Direccion;
+            clienteExistente.Telefono = dto.Telefono;
 
             await _context.SaveChangesAsync();
             return Ok(new { mensaje = "Cliente actualizado exitosamente." });

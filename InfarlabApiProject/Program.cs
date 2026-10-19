@@ -98,17 +98,7 @@ namespace InfarlabApiProject
                 });
             });
 
-            //CORS
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowFrontend", policy =>
-                {
-                    policy.SetIsOriginAllowed(origin => true)
-                          .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials();
-                });
-            });
+            // NOTE: Usamos la política "PermitirFrontend" definida arriba
 
             var app = builder.Build();
 
@@ -143,17 +133,9 @@ namespace InfarlabApiProject
             }
 
             app.UseHttpsRedirection();
-<<<<<<< HEAD
 
-            app.UseCors("AllowFrontend");
-
-=======
-            // ==========================================
-            // NUEVO: ACTIVAR CORS
-            // IMPORTANTE: Debe ir EXACTAMENTE aquí (después de HttpsRedirection y antes de Authentication)
-            // ==========================================
+            // Activar CORS con la política configurada
             app.UseCors("PermitirFrontend");
->>>>>>> 48bd47a670390ab061b33cfa056ff059e88ac67f
             app.UseAuthentication();
             app.UseAuthorization();
 
