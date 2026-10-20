@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFARLAB - Dashboard Ventas</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon"><i class="fa-solid fa-flask-vial"></i></div>
+                <h2>INFARLAB</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard-ventas.html" class="nav-item active">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Inicio</span>
+                </a>
+                <a href="ventas.html" class="nav-item">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>Ventas</span>
+                </a>
+                <a href="#" class="nav-item" onclick="cerrarSesionVentas()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div>
+                    <h1>Bienvenido al Área de Ventas</h1>
+                    <p class="text-muted">Panel de control - INFARLAB</p>
+                </div>
+                <div class="user-info">
+                    <span id="user-name">Usuario</span>
+                    <span class="badge-rol">Ventas</span>
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fa-solid fa-cart-shopping"></i></div>
+                    <div class="stat-content">
+                        <h3 id="total-ventas">0</h3>
+                        <p>Total Ventas</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fa-solid fa-money-bill"></i></div>
+                    <div class="stat-content">
+                        <h3 id="monto-total">Bs. 0.00</h3>
+                        <p>Monto Total</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-content">
+                        <h3 id="total-clientes">0</h3>
+                        <p>Clientes</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fa-solid fa-box"></i></div>
+                    <div class="stat-content">
+                        <h3 id="total-productos">0</h3>
+                        <p>Productos</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Ventas Recientes</h2>
+                    <a href="ventas.html" class="btn-link">Ver todas <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Producto</th>
+                                <th>Total</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-ventas-recientes">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 20px;">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if (!localStorage.getItem("authToken")) {
+            window.location.href = "index.html";
+        }
+        
+        document.addEventListener("DOMContentLoaded", async () => {
+            const userName = localStorage.getItem("usuarioNombre") || "Usuario";
+            document.getElementById("user-name").textContent = userName;
+            
+            try {
+                const headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+                };
+                
+                const [ventasRes, clientesRes, productosRes] = await Promise.all([
+                    fetch("https://localhost:7067/api/Ventas", { headers }),
+                    fetch("https://localhost:7067/api/Clientes", { headers }),
+                    fetch("https://localhost:7067/api/Productos", { headers })
+                ]);
+                
+                if (ventasRes.ok) {
+                    const ventas = await ventasRes.json();
+                    document.getElementById("total-ventas").textContent = ventas.length;
+                    
+                    const montoTotal = ventas.reduce((sum, v) => sum + (v.totalVenta || v.TotalVenta || 0), 0);
+                    document.getElementById("monto-total").textContent = `Bs. ${montoTotal.toFixed(2)}`;
+                    
+                    const tbody = document.getElementById("tabla-ventas-recientes");
+                    if (tbody && ventas.length > 0) {
+                        tbody.innerHTML = "";
+                        ventas.slice(0, 5).forEach(v => {
+                            const tr = document.createElement("tr");
+                            tr.innerHTML = `
+                                <td>VNT-${(v.idVenta || v.IdVenta).toString().padStart(4, '0')}</td>
+                                <td>${v.clienteNombre || v.ClienteNombre || 'Cliente'}</td>
+                                <td>${v.productoNombre || v.ProductoNombre || 'Producto'}</td>
+                                <td>Bs. ${(v.totalVenta || v.TotalVenta || 0).toFixed(2)}</td>
+                                <td>${v.fechaVenta ? new Date(v.fechaVenta).toLocaleDateString('es-BO') : '-'}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                }
+                
+                if (clientesRes.ok) {
+                    const clientes = await clientesRes.json();
+                    document.getElementById("total-clientes").textContent = clientes.length;
+                }
+                
+                if (productosRes.ok) {
+                    const productos = await productosRes.json();
+                    document.getElementById("total-productos").textContent = productos.length;
+                }
+            } catch (error) {
+                console.error("Error cargando dashboard:", error);
+            }
+        });
+        
+        function cerrarSesionVentas() {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("usuarioNombre");
+            localStorage.removeItem("usuarioRol");
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

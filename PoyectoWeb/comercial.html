@@ -54,6 +54,9 @@
                     <button class="tab-button" onclick="cambiarTab('compras')">
                         <i class="fa-solid fa-box-open"></i> Compras
                     </button>
+                    <button class="tab-button" onclick="cambiarTab('devoluciones')" id="tab-btn-devoluciones" style="display: none;">
+        <i class="fa-solid fa-rotate-left"></i> Devoluciones
+    </button>
                 </div>
             </div>
 
@@ -177,6 +180,41 @@
                     </div>
                 </div>
             </div>
+
+            <!--DEVOLUCIONES (Solo Admin)-->
+<div id="tab-devoluciones" class="tab-content">
+    <div class="section-card">
+        <div class="section-header">
+            <div>
+                <h3 class="section-title">Gestión de Devoluciones</h3>
+                <p class="section-description">Registro y control de devoluciones de ventas</p>
+            </div>
+            <button class="btn-primary-sm" onclick="abrirModalDevolucion()" id="btn-nueva-devolucion" style="display: none;">
+    <i class="fa-solid fa-plus"></i> Nueva Devolución
+</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Devolución</th>
+                        <th>Venta</th>
+                        <th>Cliente</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Motivo</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-devoluciones">
+                    <tr><td colspan="9" style="text-align:center; padding: 20px;">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
         </section>
     </main>

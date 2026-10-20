@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFARLAB - Ventas</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="dashboard-body">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-flask-vial"></i>
+            <span>INFARLAB</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li data-roles="1,2,3,4,5,6"><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li data-roles="1,2,4,5"><a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Productos & Lotes</a></li>
+            <li data-roles="1"><a href="comercial.html"><i class="fa-solid fa-handshake"></i> Comercial & Clientes</a></li>
+            <li data-roles="1,3"><a href="cuarentena.html"><i class="fa-solid fa-triangle-exclamation"></i> Calidad / Cuarentena</a></li>
+            <li data-roles="1"><a href="usuarios.html"><i class="fa-solid fa-users-gear"></i> Usuarios y Roles</a></li>
+            <li data-roles="6"><a href="ventas.html"><i class="fa-solid fa-cart-shopping"></i> Ventas</a></li>
+            <!-- ✅ ENLACE A DEVOLUCIONES AGREGADO (Visible para Admin y Ventas) -->
+            <li data-roles="1,6"><a href="devoluciones.html"><i class="fa-solid fa-rotate-left"></i> Devoluciones</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="#" onclick="cerrarSesion(); return false;" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-title">
+                <h2>Gestión de Ventas</h2>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Registro y control de transacciones</p>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar" id="user-avatar">--</div>
+                <div class="user-info">
+                    <span class="user-name" id="user-name">Cargando...</span>
+                    <span class="user-role" id="user-role">Cargando...</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="recent-activity">
+            <div class="section-header">
+                <div>
+                    <h3>Registro de Ventas</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Historial de transacciones de venta</p>
+                </div>
+                <button class="btn-primary-sm" id="btn-nueva-venta"><i class="fa-solid fa-plus"></i> Nueva Venta</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Venta</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-ventas">
+                        <tr><td colspan="4" style="text-align:center; padding: 20px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Nueva Venta -->
+    <div id="modal-venta" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>Nueva Venta</h2>
+                <button class="modal-close" id="btn-cerrar-modal-venta">&times;</button>
+            </div>
+            <form id="form-venta">
+                <div class="input-group full-width" style="margin-bottom: 20px;">
+                    <label>Cliente</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <select id="venta-cliente" required>
+                            <option value="">Seleccione un cliente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Productos</label>
+                        <button type="button" id="btn-agregar-producto" style="background: #22c55e; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-plus"></i> Agregar producto
+                        </button>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: rgba(15, 23, 42, 0.8);">
+                                    <th style="padding: 10px; text-align: left; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Producto</th>
+                                    <th style="padding: 10px; text-align: center; font-size: 11px; color: var(--text-muted); text-transform: uppercase; width: 100px;">Cantidad</th>
+                                    <th style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-muted); text-transform: uppercase; width: 120px;">Precio Unit.</th>
+                                    <th style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-muted); text-transform: uppercase; width: 120px;">Subtotal</th>
+                                    <th style="padding: 10px; text-align: center; font-size: 11px; color: var(--text-muted); text-transform: uppercase; width: 60px;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-detalles-venta"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <div style="background: rgba(2, 132, 199, 0.15); border: 1px solid var(--primary-color); border-radius: 10px; padding: 15px 25px; display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 14px; font-weight: 600; color: var(--text-muted);">TOTAL GENERAL:</span>
+                        <span id="total-general" style="font-size: 24px; font-weight: 700; color: var(--accent-color);">Bs. 0.00</span>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label>Tipo de Pago</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <select id="venta-tipo-pago" required>
+                            <option value="">Seleccione un tipo de pago</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group full-width" style="margin-bottom: 20px;">
+                    <label>Observaciones (opcional)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-comment"></i>
+                        <input type="text" id="venta-observaciones" placeholder="Observaciones opcionales">
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btn-cancelar-venta" style="width: auto; padding: 10px 20px;">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">Registrar Venta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Detalle de Venta -->
+    <div id="modal-detalle-venta" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="detalle-titulo">Detalle de Venta</h2>
+                <button class="modal-close" id="btn-cerrar-detalle">&times;</button>
+            </div>
+            <div id="detalle-contenido"></div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Venta -->
+    <div id="modal-editar-venta" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>Editar Venta #<span id="editar-id-venta">0000</span></h2>
+                <button class="modal-close" id="btn-cerrar-editar">&times;</button>
+            </div>
+            <form id="form-editar-venta">
+                <input type="hidden" id="editar-venta-id">
+                
+                <div class="input-group full-width" style="margin-bottom: 20px;">
+                    <label>Cliente</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <select id="editar-cliente" required>
+                            <option value="">Seleccione un cliente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Productos</label>
+                        <button type="button" id="btn-agregar-producto-editar" style="background: #22c55e; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-plus"></i> Agregar producto
+                        </button>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: rgba(15, 23, 42, 0.8);">
+                                    <th style="padding: 10px; text-align: left; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Producto</th>
+                                    <th style="padding: 10px; text-align: center; font-size: 11px; color: var(--text-muted); text-transform: uppercase; width: 100px;">Cantidad</th>
+                                    <th style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-muted); text-transform: uppercase; width: 120px;">Precio Unit.</th>
+                                    <th style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-muted); text-transform: uppercase; width: 120px;">Subtotal</th>
+                                    <th style="padding: 10px; text-align: center; font-size: 11px; color: var(--text-muted); text-transform: uppercase; width: 60px;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-detalles-editar"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <div style="background: rgba(2, 132, 199, 0.15); border: 1px solid var(--primary-color); border-radius: 10px; padding: 15px 25px; display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 14px; font-weight: 600; color: var(--text-muted);">TOTAL GENERAL:</span>
+                        <span id="editar-total-general" style="font-size: 24px; font-weight: 700; color: var(--accent-color);">Bs. 0.00</span>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label>Tipo de Pago</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <select id="editar-tipo-pago" required>
+                            <option value="">Seleccione un tipo de pago</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group full-width" style="margin-bottom: 20px;">
+                    <label>Observaciones (opcional)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-comment"></i>
+                        <input type="text" id="editar-observaciones" placeholder="Observaciones opcionales">
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btn-cancelar-editar" style="width: auto; padding: 10px 20px;">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Historial de Cambios (Solo Admin) -->
+    <div id="modal-historial" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 900px; max-height: 85vh; overflow-y: auto;">
+            <div class="modal-header" style="position: sticky; top: 0; background: #1e293b; z-index: 10; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h2><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-color);"></i> Historial - Venta #<span id="historial-id-venta">0000</span></h2>
+                <button class="modal-close" id="btn-cerrar-historial">&times;</button>
+            </div>
+            <div id="historial-contenido" style="padding-top: 10px;">
+                <p style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando historial...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="ventas.js"></script>
+</body>
+</html>

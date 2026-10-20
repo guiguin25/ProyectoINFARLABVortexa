@@ -13,36 +13,32 @@
 </head>
 <body class="dashboard-body">
  
-    <!-- Menú Lateral -->
     <aside class="sidebar">
         <div class="sidebar-brand">
             <i class="fa-solid fa-flask-vial"></i>
             <span>INFARLAB</span>
         </div>
         <ul class="sidebar-menu">
-            <li class="active"><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-            <li><a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Productos & Lotes</a></li>
-            <li><a href="comercial.html"><i class="fa-solid fa-handshake"></i> Comercial & Clientes</a></li>
-            <li><a href="cuarentena.html"><i class="fa-solid fa-triangle-exclamation"></i> Calidad / Cuarentena</a></li>
-            <li><a href="usuarios.html"><i class="fa-solid fa-users-gear"></i> Usuarios y Roles</a></li>
+            <li data-roles="1,2,3,4,5,6"><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li data-roles="1,2,4,5"><a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Productos & Lotes</a></li>
+            <li data-roles="1"><a href="comercial.html"><i class="fa-solid fa-handshake"></i> Comercial & Clientes</a></li>
+            <li data-roles="1,3"><a href="cuarentena.html"><i class="fa-solid fa-triangle-exclamation"></i> Calidad / Cuarentena</a></li>
+            <li data-roles="1"><a href="usuarios.html"><i class="fa-solid fa-users-gear"></i> Usuarios y Roles</a></li>
+            <li data-roles="6"><a href="ventas.html"><i class="fa-solid fa-cart-shopping"></i> Ventas</a></li>
         </ul>
         <div class="sidebar-footer">
-            <!--Cambiado para ejecutar la función de cierre de sesión-->
             <a href="#" onclick="cerrarSesion(); return false;" class="logout-btn">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
             </a>
         </div>
     </aside>
  
-    <!-- Contenido Principal -->
     <main class="main-content">
         <header class="topbar">
             <div class="topbar-title">
                 <h2>Panel de Control Principal</h2>
                 <p>Resumen general del sistema y control de entidades críticas</p>
             </div>
-            
-            <!-- Perfil de Usuario Dinámico -->
             <div class="user-profile">
                 <div class="user-avatar" id="user-avatar">--</div>
                 <div class="user-info">
@@ -52,7 +48,6 @@
             </div>
         </header>
  
-        <!-- Widgets Indicadores -->
         <section class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
@@ -77,10 +72,9 @@
             </div>
         </section>
  
-        <!-- Tabla resumen reciente -->
         <section class="recent-activity">
             <div class="section-header">
-                <h3>Últimas Transacciones (Ventas y Compras)</h3>
+                <h3>Últimas Transacciones</h3>
                 <span class="badge-in" id="sync-status">Sincronizando...</span>
             </div>
             <div class="table-container">
@@ -95,47 +89,14 @@
                         </tr>
                     </thead>
                     <tbody id="tabla-dashboard-transacciones">
+                        <tr><td colspan="5" style="text-align:center; padding: 20px;">Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>
         </section>
     </main>
 
-    <!--CARGAR DATOS DEL USUARIO-->
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const nombreUsuario = localStorage.getItem('usuarioNombre') || 'Usuario';
-        const rolUsuario = localStorage.getItem('usuarioRol') || 'Sin Rol';
-
-        //ACTUALIZA EL NOMBRE
-        const userNameElement = document.getElementById('user-name');
-        if (userNameElement) {
-            userNameElement.textContent = nombreUsuario;
-        }
-
-        //ACTUALIZA EL ROL
-        const userRoleElement = document.getElementById('user-role');
-        if (userRoleElement) {
-            userRoleElement.textContent = rolUsuario;
-        }
-
-        //MUESTRA EL NOMBRE Y EL ROL SEGÚN QUIÉN INICE SESIÓN
-        const userAvatarElement = document.getElementById('user-avatar');
-        if (userAvatarElement) {
-            const primeraLetra = nombreUsuario.trim().charAt(0).toUpperCase();
-            userAvatarElement.textContent = primeraLetra;
-        }
-    });
-
-    function cerrarSesion() {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('usuarioNombre');
-        localStorage.removeItem('usuarioRol');
-        localStorage.removeItem('usuarioEmail');
-        window.location.href = 'index.html';
-    }
-    </script>
-
     <script src="app.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>
