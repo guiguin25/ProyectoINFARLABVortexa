@@ -10,7 +10,7 @@ namespace InfarlabApiProject.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class DetalleDevolucionController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -81,36 +81,5 @@ namespace InfarlabApiProject.Controllers
             return CreatedAtAction(nameof(GetDetalleDevolucion), new { id = detalle.IdDetalleDevolucion }, detalleDto);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> ActualizarDetalleDevolucion(int id, [FromBody] DetalleDevolucionDto dto)
-        {
-            var detalleExistente = await _context.DetalleDevoluciones.FindAsync(id);
-
-            if (detalleExistente == null)
-            {
-                return NotFound(new { mensaje = "Detalle de devolución no encontrado." });
-            }
-               
-            _mapper.Map(dto, detalleExistente);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> EliminarDetalleDevolucion(int id)
-        {
-            var detalle = await _context.DetalleDevoluciones.FindAsync(id);
-
-            if (detalle == null)
-            {
-                return NotFound(new { mensaje = "Detalle de devolución no encontrado." });
-            }
-                
-            detalle.Estado = false;
-            await _context.SaveChangesAsync();
-
-            return Ok(new { mensaje = "Detalle de devolución desactivado exitosamente." });
-        }
     }
 }

@@ -32,6 +32,8 @@ namespace InfarlabSis.Domain.Entities
         [Required(ErrorMessage = "El campo {0} es obligatorio")]
         public bool Estado { get; set; } = true;
 
+        public string EstadoEntrega { get; set; } = "PENDIENTE";
+
         // Relación: Una venta es realizada por un Usuario
         [ForeignKey("IdUsuario")]
         public Usuario Usuario { get; set; }
@@ -45,6 +47,8 @@ namespace InfarlabSis.Domain.Entities
 
         // Relación: Una venta puede tener una o más Devoluciones
         public List<Devolucion> Devoluciones { get; set; }
+
+        public virtual ICollection<EntregaDespacho> Entregas { get; set; } = new List<EntregaDespacho>();
 
         public Venta()
         {

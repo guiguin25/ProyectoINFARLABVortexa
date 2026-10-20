@@ -25,14 +25,19 @@ namespace InfarlabSis.Infrastructure.Persistence
         public DbSet<Categoria> Categorias => Set<Categoria>();
         public DbSet<Almacen> Almacenes => Set<Almacen>();
         public DbSet<Producto> Productos => Set<Producto>();
+        public DbSet<UnidadMedida> UnidadesMedida => Set<UnidadMedida>();
         public DbSet<Lote> Lotes => Set<Lote>();
         public DbSet<AreaCalidad> AreasCalidad => Set<AreaCalidad>();
+        public DbSet<StockAlmacen> StockAlmacenes => Set<StockAlmacen>();
+        public DbSet<Kardex> Kardexs => Set<Kardex>();
 
         // ==========================================
         // Módulo de Ventas y Devoluciones
         // ==========================================
         public DbSet<Venta> Ventas => Set<Venta>();
         public DbSet<DetalleVenta> DetalleVentas => Set<DetalleVenta>();
+        public DbSet<EntregaDespacho> EntregasDespacho => Set<EntregaDespacho>();
+        public DbSet<DetalleEntrega> DetallesEntrega => Set<DetalleEntrega>();
         public DbSet<Devolucion> Devoluciones => Set<Devolucion>();
         public DbSet<DetalleDevolucion> DetalleDevoluciones => Set<DetalleDevolucion>();
 
@@ -58,6 +63,13 @@ namespace InfarlabSis.Infrastructure.Persistence
                 entity.Property(e => e.ApMat).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.CI).HasMaxLength(20).IsRequired();
                 entity.Property(e => e.Email).HasMaxLength(100).IsRequired();
+            });
+
+            modelBuilder.Entity<UnidadMedida>(entity =>
+            {
+                entity.HasKey(e => e.IdUnidad);
+                entity.Property(e => e.Nombre).HasMaxLength(50).IsRequired();
+                entity.HasIndex(e => e.Nombre).IsUnique();
             });
 
             modelBuilder.Entity<Rol>(entity =>
@@ -158,12 +170,22 @@ namespace InfarlabSis.Infrastructure.Persistence
                       .HasForeignKey(p => p.IdProveedor)
                       .IsRequired(false)
                       .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.UnidadMedida)
+                      .WithMany(u => u.Productos)
+                      .HasForeignKey(p => p.IdUnidad)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Lote>(entity =>
             {
                 entity.HasKey(e => e.IdLote);
                 entity.Property(e => e.Tipo).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.NumeroLote).HasMaxLength(100);
+                entity.HasIndex(e => e.NumeroLote)
+                      .IsUnique()
+                      .HasFilter("[NumeroLote] IS NOT NULL");
 
                 entity.HasOne(l => l.Producto)
                       .WithMany(p => p.Lotes)
@@ -175,6 +197,40 @@ namespace InfarlabSis.Infrastructure.Persistence
                       .HasForeignKey(l => l.IdProveedor)
                       .IsRequired(false)
                       .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(l => l.LoteOrigen)
+                      .WithMany()
+                      .HasForeignKey(l => l.IdLoteOrigen)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<StockAlmacen>(entity =>
+            {
+                entity.HasKey(e => e.IdStockAlmacen);
+                entity.HasIndex(e => new { e.IdAlmacen, e.IdProducto, e.IdLote }).IsUnique();
+                entity.Property(e => e.CantidadActual).HasPrecision(18, 3);
+
+                entity.HasOne(e => e.Almacen).WithMany().HasForeignKey(e => e.IdAlmacen).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Producto).WithMany().HasForeignKey(e => e.IdProducto).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Lote).WithMany().HasForeignKey(e => e.IdLote).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Kardex>(entity =>
+            {
+                entity.HasKey(e => e.IdKardex);
+                entity.Property(e => e.TipoMovimiento).HasMaxLength(30).IsRequired();
+                entity.Property(e => e.Cantidad).HasPrecision(18, 3);
+                entity.Property(e => e.SaldoAnterior).HasPrecision(18, 3);
+                entity.Property(e => e.SaldoNuevo).HasPrecision(18, 3);
+                entity.Property(e => e.Referencia).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.FechaMovimiento).HasColumnType("datetime2");
+
+                entity.HasOne(e => e.Producto).WithMany().HasForeignKey(e => e.IdProducto).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Almacen).WithMany().HasForeignKey(e => e.IdAlmacen).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Lote).WithMany().HasForeignKey(e => e.IdLote).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.IdUsuario).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => new { e.IdProducto, e.IdAlmacen, e.FechaMovimiento });
             });
 
             modelBuilder.Entity<AreaCalidad>(entity =>
@@ -199,6 +255,7 @@ namespace InfarlabSis.Infrastructure.Persistence
             modelBuilder.Entity<Venta>(entity =>
             {
                 entity.HasKey(e => e.IdVenta);
+                entity.Property(e => e.EstadoEntrega).HasMaxLength(20).IsRequired();
 
                 entity.HasOne(v => v.Usuario)
                       .WithMany()
@@ -209,6 +266,27 @@ namespace InfarlabSis.Infrastructure.Persistence
                       .WithMany()
                       .HasForeignKey(v => v.IdCliente)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<EntregaDespacho>(entity =>
+            {
+                entity.HasKey(e => e.IdEntrega);
+                entity.Property(e => e.NumeroNotaEntrega).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Observaciones).HasMaxLength(500);
+                entity.Property(e => e.FechaEntrega).HasColumnType("datetime2");
+
+                entity.HasOne(e => e.Venta).WithMany(v => v.Entregas).HasForeignKey(e => e.IdVenta).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.IdUsuario).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DetalleEntrega>(entity =>
+            {
+                entity.HasKey(e => e.IdDetalleEntrega);
+                entity.Property(e => e.CantidadEntregada).HasPrecision(18, 3);
+
+                entity.HasOne(e => e.Entrega).WithMany(e => e.Detalles).HasForeignKey(e => e.IdEntrega).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Producto).WithMany().HasForeignKey(e => e.IdProducto).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Lote).WithMany().HasForeignKey(e => e.IdLote).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<DetalleVenta>(entity =>

@@ -36,6 +36,8 @@ namespace InfarlabSis.Application.DTOs.Productos
 
         public int? IdUnidad { get; set; }
 
+        public string? NombreUnidad { get; set; }
+
         public string? RegistroSanitario { get; set; }
 
         public bool Estado { get; set; } = true;

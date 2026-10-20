@@ -9,7 +9,7 @@ namespace InfarlabApiProject.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class ClientesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
