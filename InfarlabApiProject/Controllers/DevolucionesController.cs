@@ -1,25 +1,53 @@
 ﻿using AutoMapper;
 using InfarlabSis.Application.DTOs.Devoluciones;
+using InfarlabSis.Application.Interfaces;
 using InfarlabSis.Domain.Entities;
 using InfarlabSis.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace InfarlabApiProject.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class DevolucionesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IDevolucionService _devolucionService;
 
-        public DevolucionesController(ApplicationDbContext context, IMapper mapper)
+        public DevolucionesController(ApplicationDbContext context, IMapper mapper, IDevolucionService devolucionService)
         {
             _context = context;
             _mapper = mapper;
+            _devolucionService = devolucionService;
+        }
+
+        [HttpPost("reproceso")]
+        public async Task<IActionResult> RegistrarDevolucionReproceso(
+            [FromBody] DevolucionReprocesoDto dto,
+            CancellationToken cancellationToken)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var idUsuario))
+                return Unauthorized(new { mensaje = "El token no contiene un identificador de usuario válido." });
+
+            dto.IdUsuario = idUsuario;
+            try
+            {
+                var resultado = await _devolucionService.RegistrarDevolucionConReprocesoAsync(dto, cancellationToken);
+                return Created($"/api/v1/devoluciones/{resultado.IdDevolucion}", resultado);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { mensaje = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         [HttpGet]
@@ -87,42 +115,5 @@ namespace InfarlabApiProject.Controllers
             return CreatedAtAction(nameof(GetDevolucion), new { id = nuevaDevolucion.IdDevolucion }, resultadoDto);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> ActualizarDevolucion(int id, [FromBody] DevolucionDto dto)
-        {
-            var devolucionExistente = await _context.Devoluciones.FindAsync(id); 
-
-            if (devolucionExistente == null)
-            {
-                return NotFound(new { mensaje = "Devolución no encontrada." });
-            }
-                
-            _mapper.Map(dto, devolucionExistente);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> EliminarDevolucion(int id)
-        {
-            var devolucion = await _context.Devoluciones  
-                .Include(d => d.DetallesDevolucion)  
-                .FirstOrDefaultAsync(d => d.IdDevolucion == id);
-
-            if (devolucion == null)
-            {
-                return NotFound(new { mensaje = "Devolución no encontrada." });
-            }    
-                
-            devolucion.Estado = false;
-            foreach (var detalle in devolucion.DetallesDevolucion)
-            {
-                detalle.Estado = false;
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok(new { mensaje = "Devolución desactivada exitosamente." });
-        }
     }
 }

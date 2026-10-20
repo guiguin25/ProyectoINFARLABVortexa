@@ -24,6 +24,7 @@ namespace InfarlabSis.Domain.Entities
         // Propiedades de navegación
         public virtual Categoria? Categoria { get; set; }
         public virtual Proveedor? Proveedor { get; set; }
+        public virtual UnidadMedida? UnidadMedida { get; set; }
         public virtual ICollection<Lote> Lotes { get; set; } = new List<Lote>();
     }
 }

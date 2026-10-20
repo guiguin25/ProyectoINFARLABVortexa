@@ -2,6 +2,8 @@
 using InfarlabSis.Application.DTOs.Actores;
 using InfarlabSis.Application.DTOs.Compras;
 using InfarlabSis.Application.DTOs.Devoluciones;
+using InfarlabSis.Application.DTOs.Despachos;
+using InfarlabSis.Application.DTOs.Inventario;
 using InfarlabSis.Application.DTOs.Persona;
 using InfarlabSis.Application.DTOs.Productos;
 using InfarlabSis.Application.DTOs.Usuarios;
@@ -29,6 +31,13 @@ namespace InfarlabSis.Application.Mappings
             // Productos y Almacenes
             CreateMap<Categoria, CategoriaDto>().ReverseMap();
             CreateMap<Almacen, AlmacenDto>().ReverseMap();
+            CreateMap<UnidadMedida, UnidadMedidaDto>().ReverseMap();
+            CreateMap<Lote, LoteDto>()
+                .ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src => src.Producto != null ? src.Producto.Nombre : null))
+                .ForMember(dest => dest.NombreProveedor, opt => opt.MapFrom(src => src.Proveedor != null ? src.Proveedor.Nombre : null));
+            CreateMap<AreaCalidad, AreaCalidadDto>()
+                .ForMember(dest => dest.NumeroLote, opt => opt.MapFrom(src => src.Lote != null ? src.Lote.NumeroLote : null))
+                .ForMember(dest => dest.NombreAlmacenDestino, opt => opt.MapFrom(src => src.AlmacenDestino != null ? src.AlmacenDestino.Nombre : null));
             CreateMap<Producto, ProductoDto>()
                 .ForMember(dest => dest.NombreCategoria, opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : string.Empty))
                 .ForMember(dest => dest.NombreProveedor, opt => opt.MapFrom(src => src.Proveedor != null ? src.Proveedor.Nombre : null))
@@ -36,6 +45,7 @@ namespace InfarlabSis.Application.Mappings
                 .ForMember(dest => dest.Codigo, opt => opt.MapFrom(src => src.Codigo))
                 .ForMember(dest => dest.StockMinimo, opt => opt.MapFrom(src => src.StockMinimo))
                 .ForMember(dest => dest.IdUnidad, opt => opt.MapFrom(src => src.IdUnidad))
+                .ForMember(dest => dest.NombreUnidad, opt => opt.MapFrom(src => src.UnidadMedida != null ? src.UnidadMedida.Nombre : null))
                 .ForMember(dest => dest.RegistroSanitario, opt => opt.MapFrom(src => src.RegistroSanitario))
                 .ReverseMap();
 
@@ -88,6 +98,22 @@ namespace InfarlabSis.Application.Mappings
                 .ForMember(dest => dest.IdProveedor, opt => opt.Ignore())
                 .ForMember(dest => dest.IdCategoria, opt => opt.Ignore());
             CreateMap<CompraProveedorCreaDto, CompraProveedor>();
+
+            // Inventario y despachos
+            CreateMap<StockAlmacen, StockAlmacenDto>()
+                .ForMember(dest => dest.NombreAlmacen, opt => opt.MapFrom(src => src.Almacen.Nombre))
+                .ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src => src.Producto.Nombre))
+                .ForMember(dest => dest.NumeroLote, opt => opt.MapFrom(src => src.Lote.NumeroLote));
+
+            CreateMap<Kardex, KardexDto>()
+                .ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src => src.Producto.Nombre))
+                .ForMember(dest => dest.NombreAlmacen, opt => opt.MapFrom(src => src.Almacen.Nombre))
+                .ForMember(dest => dest.NumeroLote, opt => opt.MapFrom(src => src.Lote.NumeroLote));
+
+            CreateMap<EntregaDespacho, EntregaDespachoDto>();
+            CreateMap<DetalleEntrega, DetalleEntregaDto>()
+                .ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src => src.Producto.Nombre))
+                .ForMember(dest => dest.NumeroLote, opt => opt.MapFrom(src => src.Lote.NumeroLote));
         }
     }
 }

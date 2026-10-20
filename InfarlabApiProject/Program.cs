@@ -22,7 +22,9 @@ namespace InfarlabApiProject
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IInventarioService, InventarioService>();
+            builder.Services.AddScoped<IDespachoService, DespachoService>();
+            builder.Services.AddScoped<IDevolucionService, DevolucionService>();
 
             // Configuración JWT
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -102,7 +104,7 @@ namespace InfarlabApiProject
 
             var app = builder.Build();
 
-            //SEEDERS -- FAKERS
+            // Semillas maestras esenciales
 
             using (var scope = app.Services.CreateScope())
             {
@@ -112,7 +114,7 @@ namespace InfarlabApiProject
 
                 try
                 {
-                    await DbSeed.SeedAsync(context);
+                    await DbSeeder.SeedAsync(context);
                 }
                 catch (Exception ex)
                 {
